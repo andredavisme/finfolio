@@ -771,16 +771,86 @@ footer {
       <div class="snapshot-card">
         <div class="snapshot-section">
           <div class="snapshot-section-title">Essentials</div>
-          <div class="snapshot-row"><span class="snapshot-row-label">Groceries</span><input type="number" class="snapshot-row-input" placeholder="$0" min="0" inputmode="numeric" data-var="groceries"></div>
-          <div class="snapshot-row"><span class="snapshot-row-label">Gas / transit</span><input type="number" class="snapshot-row-input" placeholder="$0" min="0" inputmode="numeric" data-var="gas"></div>
-          <div class="snapshot-row"><span class="snapshot-row-label">Utilities (electric, water, gas)</span><input type="number" class="snapshot-row-input" placeholder="$0" min="0" inputmode="numeric" data-var="utilities"></div>
+          <div class="snapshot-row">
+            <span class="snapshot-row-label">Groceries</span>
+            <select class="snapshot-row-freq-select" data-freq-for="var_groceries">
+              <option value="monthly" selected>/ mo</option>
+              <option value="semimonthly">/ half-mo</option>
+              <option value="biweekly">/ 2 wks</option>
+              <option value="weekly">/ wk</option>
+              <option value="quarterly">/ qtr</option>
+            </select>
+            <input type="number" class="snapshot-row-input" placeholder="$0" min="0" inputmode="numeric" data-var="groceries" data-freq-ref="var_groceries">
+          </div>
+          <div class="snapshot-row">
+            <span class="snapshot-row-label">Gas / transit</span>
+            <select class="snapshot-row-freq-select" data-freq-for="var_gas">
+              <option value="monthly" selected>/ mo</option>
+              <option value="semimonthly">/ half-mo</option>
+              <option value="biweekly">/ 2 wks</option>
+              <option value="weekly">/ wk</option>
+              <option value="quarterly">/ qtr</option>
+            </select>
+            <input type="number" class="snapshot-row-input" placeholder="$0" min="0" inputmode="numeric" data-var="gas" data-freq-ref="var_gas">
+          </div>
+          <div class="snapshot-row">
+            <span class="snapshot-row-label">Utilities (electric, water, gas)</span>
+            <select class="snapshot-row-freq-select" data-freq-for="var_utilities">
+              <option value="monthly" selected>/ mo</option>
+              <option value="semimonthly">/ half-mo</option>
+              <option value="biweekly">/ 2 wks</option>
+              <option value="weekly">/ wk</option>
+              <option value="quarterly">/ qtr</option>
+            </select>
+            <input type="number" class="snapshot-row-input" placeholder="$0" min="0" inputmode="numeric" data-var="utilities" data-freq-ref="var_utilities">
+          </div>
         </div>
         <div class="snapshot-section">
           <div class="snapshot-section-title">Life</div>
-          <div class="snapshot-row"><span class="snapshot-row-label">Dining out / takeout</span><input type="number" class="snapshot-row-input" placeholder="$0" min="0" inputmode="numeric" data-var="dining"></div>
-          <div class="snapshot-row"><span class="snapshot-row-label">Entertainment & fun</span><input type="number" class="snapshot-row-input" placeholder="$0" min="0" inputmode="numeric" data-var="entertainment"></div>
-          <div class="snapshot-row"><span class="snapshot-row-label">Personal care & health</span><input type="number" class="snapshot-row-input" placeholder="$0" min="0" inputmode="numeric" data-var="health"></div>
-          <div class="snapshot-row"><span class="snapshot-row-label">Clothing & misc shopping</span><input type="number" class="snapshot-row-input" placeholder="$0" min="0" inputmode="numeric" data-var="shopping"></div>
+          <div class="snapshot-row">
+            <span class="snapshot-row-label">Dining out / takeout</span>
+            <select class="snapshot-row-freq-select" data-freq-for="var_dining">
+              <option value="monthly" selected>/ mo</option>
+              <option value="semimonthly">/ half-mo</option>
+              <option value="biweekly">/ 2 wks</option>
+              <option value="weekly">/ wk</option>
+              <option value="quarterly">/ qtr</option>
+            </select>
+            <input type="number" class="snapshot-row-input" placeholder="$0" min="0" inputmode="numeric" data-var="dining" data-freq-ref="var_dining">
+          </div>
+          <div class="snapshot-row">
+            <span class="snapshot-row-label">Entertainment & fun</span>
+            <select class="snapshot-row-freq-select" data-freq-for="var_entertainment">
+              <option value="monthly" selected>/ mo</option>
+              <option value="semimonthly">/ half-mo</option>
+              <option value="biweekly">/ 2 wks</option>
+              <option value="weekly">/ wk</option>
+              <option value="quarterly">/ qtr</option>
+            </select>
+            <input type="number" class="snapshot-row-input" placeholder="$0" min="0" inputmode="numeric" data-var="entertainment" data-freq-ref="var_entertainment">
+          </div>
+          <div class="snapshot-row">
+            <span class="snapshot-row-label">Personal care & health</span>
+            <select class="snapshot-row-freq-select" data-freq-for="var_health">
+              <option value="monthly" selected>/ mo</option>
+              <option value="semimonthly">/ half-mo</option>
+              <option value="biweekly">/ 2 wks</option>
+              <option value="weekly">/ wk</option>
+              <option value="quarterly">/ qtr</option>
+            </select>
+            <input type="number" class="snapshot-row-input" placeholder="$0" min="0" inputmode="numeric" data-var="health" data-freq-ref="var_health">
+          </div>
+          <div class="snapshot-row">
+            <span class="snapshot-row-label">Clothing & misc shopping</span>
+            <select class="snapshot-row-freq-select" data-freq-for="var_shopping">
+              <option value="monthly" selected>/ mo</option>
+              <option value="semimonthly">/ half-mo</option>
+              <option value="biweekly">/ 2 wks</option>
+              <option value="weekly">/ wk</option>
+              <option value="quarterly">/ qtr</option>
+            </select>
+            <input type="number" class="snapshot-row-input" placeholder="$0" min="0" inputmode="numeric" data-var="shopping" data-freq-ref="var_shopping">
+          </div>
         </div>
       </div>
       <div class="step-nav">
@@ -974,7 +1044,16 @@ function sumFixed(){
   });
   return t;
 }
-function sumVar(){ let t=0; document.querySelectorAll('[data-var]').forEach(el=>{t+=parseFloat(el.value)||0;}); return t; }
+function sumVar(){
+  let t=0;
+  document.querySelectorAll('[data-var]').forEach(el=>{
+    const freqKey = el.dataset.freqRef;
+    const freqEl  = freqKey ? document.querySelector(`[data-freq-for="${freqKey}"]`) : null;
+    const freq    = freqEl ? freqEl.value : 'monthly';
+    t += toMonthly(el.value, freq);
+  });
+  return t;
+}
 function fmt(n){ return '$'+Math.round(n).toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0}); }
 
 /* ── Finish & show snapshot ── */
