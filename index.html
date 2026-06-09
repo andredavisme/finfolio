@@ -9,11 +9,11 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     :root, [data-theme="light"] {
-      --text-xs: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
-      --text-sm: clamp(0.875rem, 0.8rem + 0.35vw, 1rem);
-      --text-base: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
-      --text-lg: clamp(1.125rem, 1rem + 0.75vw, 1.5rem);
-      --text-xl: clamp(1.5rem, 1.2rem + 1.25vw, 2.25rem);
+      --text-xs:   clamp(0.75rem,  0.7rem  + 0.25vw, 0.875rem);
+      --text-sm:   clamp(0.875rem, 0.8rem  + 0.35vw, 1rem);
+      --text-base: clamp(1rem,     0.95rem + 0.25vw, 1.125rem);
+      --text-lg:   clamp(1.125rem, 1rem    + 0.75vw, 1.5rem);
+      --text-xl:   clamp(1.5rem,   1.2rem  + 1.25vw, 2.25rem);
       --space-1: 0.25rem; --space-2: 0.5rem; --space-3: 0.75rem; --space-4: 1rem;
       --space-5: 1.25rem; --space-6: 1.5rem; --space-8: 2rem; --space-10: 2.5rem;
       --space-12: 3rem; --space-16: 4rem;
@@ -45,6 +45,30 @@
     button { cursor: pointer; border: none; }
     a { color: inherit; text-decoration: none; }
     img, canvas, svg { max-width: 100%; display: block; }
+
+    /* ── Startup modal ── */
+    #startupOverlay {
+      position: fixed; inset: 0; z-index: 1000;
+      background: var(--color-bg);
+      display: flex; align-items: center; justify-content: center;
+    }
+    #startupOverlay.hidden { display: none; }
+    .startup-card {
+      background: var(--color-surface); border: 1px solid var(--color-border);
+      border-radius: var(--radius-xl); padding: var(--space-10);
+      max-width: 420px; width: 90%; box-shadow: var(--shadow-lg);
+      display: grid; gap: var(--space-6); text-align: center;
+    }
+    .startup-logo { display: flex; align-items: center; justify-content: center; gap: var(--space-3); }
+    .startup-logo svg { width: 40px; height: 40px; color: var(--color-primary); }
+    .startup-logo span { font-family: var(--font-display); font-size: var(--text-lg); }
+    .startup-card h2 { font-family: var(--font-display); font-size: var(--text-xl); line-height: 1.2; }
+    .startup-card p { color: var(--color-text-muted); font-size: var(--text-sm); }
+    .startup-btns { display: grid; gap: var(--space-3); }
+    .startup-btns .btn { width: 100%; justify-content: center; font-size: var(--text-base); padding: var(--space-4); }
+    .startup-hint { font-size: var(--text-xs); color: var(--color-text-faint); }
+
+    /* ── Sidebar ── */
     .sidebar {
       position: sticky; top: 0; height: 100dvh; background: var(--color-surface); border-right: 1px solid var(--color-border);
       padding: var(--space-6); display: flex; flex-direction: column; gap: var(--space-6); overflow-y: auto;
@@ -66,14 +90,36 @@
       border: 1px solid var(--color-border); transition: all var(--transition); font-size: var(--text-sm);
     }
     .theme-toggle:hover, .file-actions button:hover { background: var(--color-surface-2); }
+
+    /* ── Main ── */
     .main { min-width: 0; }
     .topbar {
       position: sticky; top: 0; z-index: 10; display: flex; justify-content: space-between; align-items: center;
       padding: var(--space-4) var(--space-6); background: color-mix(in srgb, var(--color-bg) 88%, transparent);
       backdrop-filter: blur(12px); border-bottom: 1px solid var(--color-divider);
     }
-    .topbar h2 { font-size: var(--text-xl); font-family: var(--font-display); }
-    .topbar p { color: var(--color-text-muted); font-size: var(--text-sm); }
+    .topbar-left h2 { font-size: var(--text-xl); font-family: var(--font-display); }
+    .topbar-left p { color: var(--color-text-muted); font-size: var(--text-sm); }
+    .topbar-right { display: flex; align-items: center; gap: var(--space-3); }
+
+    /* Save button */
+    #saveBtn {
+      display: flex; align-items: center; gap: var(--space-2);
+      padding: var(--space-2) var(--space-4); border-radius: var(--radius-lg);
+      background: var(--color-primary); color: white; font-size: var(--text-sm);
+      transition: all var(--transition); position: relative;
+    }
+    #saveBtn:hover { background: var(--color-primary-hover); }
+    #saveBtn.clean { background: var(--color-surface-offset); color: var(--color-text-muted); border: 1px solid var(--color-border); }
+    #saveBtn.clean:hover { background: var(--color-surface-2); color: var(--color-text); }
+    #saveDot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #fff; display: inline-block; opacity: 0;
+      transition: opacity var(--transition);
+    }
+    #saveBtn.dirty #saveDot { opacity: 1; }
+    #saveBtn.clean #saveDot { display: none; }
+
     .content { padding: var(--space-6); max-width: var(--content-wide); }
     .view { display: none; gap: var(--space-6); }
     .view.active { display: grid; }
@@ -102,9 +148,7 @@
       width: 100%; background: var(--color-surface-2); border: 1px solid var(--color-border); border-radius: var(--radius-md);
       padding: var(--space-3) var(--space-4); min-height: 44px;
     }
-    .field input:focus, .field select:focus, .field textarea:focus {
-      outline: 2px solid var(--color-primary); outline-offset: 2px;
-    }
+    .field input:focus, .field select:focus, .field textarea:focus { outline: 2px solid var(--color-primary); outline-offset: 2px; }
     .field textarea { min-height: 110px; resize: vertical; }
     .btn-row { display: flex; gap: var(--space-3); flex-wrap: wrap; }
     .btn {
@@ -124,20 +168,31 @@
     tbody tr:hover { background: color-mix(in srgb, var(--color-primary-highlight) 32%, transparent); }
     .table-wrap { overflow-x: auto; }
     .status-badge { padding: 0.2rem 0.55rem; border-radius: var(--radius-full); font-size: var(--text-xs); font-weight: 700; }
-    .badge-income { background: rgba(67,122,34,0.14); color: var(--color-success); }
-    .badge-expense { background: rgba(161,53,68,0.14); color: var(--color-error); }
-    .badge-plan { background: rgba(218,113,1,0.14); color: var(--color-orange); }
-    .badge-note { background: rgba(0,100,148,0.14); color: var(--color-blue); }
+    .badge-income  { background: rgba(67,122,34,0.14);  color: var(--color-success); }
+    .badge-expense { background: rgba(161,53,68,0.14);  color: var(--color-error); }
+    .badge-plan    { background: rgba(218,113,1,0.14);  color: var(--color-orange); }
+    .badge-note    { background: rgba(0,100,148,0.14);  color: var(--color-blue); }
     .empty { color: var(--color-text-muted); font-size: var(--text-sm); padding: var(--space-6); text-align: center; background: var(--color-surface-offset); border-radius: var(--radius-lg); }
     .note-card { display: grid; gap: var(--space-2); }
     .note-meta { font-size: var(--text-xs); color: var(--color-text-muted); }
-    .upload-box {
-      border: 1px dashed var(--color-border); background: var(--color-surface-offset); padding: var(--space-5); border-radius: var(--radius-lg); display: grid; gap: var(--space-3);
-    }
+    .upload-box { border: 1px dashed var(--color-border); background: var(--color-surface-offset); padding: var(--space-5); border-radius: var(--radius-lg); display: grid; gap: var(--space-3); }
     .insight-list { display: grid; gap: var(--space-3); }
     .insight-list li { list-style: none; padding: var(--space-3) var(--space-4); background: var(--color-surface-offset); border-radius: var(--radius-lg); font-size: var(--text-sm); }
     .mobile-nav { display: none; }
     .hidden { display: none !important; }
+
+    /* Toast */
+    #toast {
+      position: fixed; bottom: var(--space-6); right: var(--space-6); z-index: 999;
+      background: var(--color-text); color: var(--color-bg);
+      padding: var(--space-3) var(--space-5); border-radius: var(--radius-lg);
+      font-size: var(--text-sm); box-shadow: var(--shadow-lg);
+      opacity: 0; transform: translateY(8px);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      pointer-events: none;
+    }
+    #toast.show { opacity: 1; transform: translateY(0); }
+
     @media (max-width: 1024px) {
       body { grid-template-columns: 88px 1fr; }
       .brand-text, .nav button span, .sidebar-footer .file-actions, .sidebar-footer .theme-toggle span { display: none; }
@@ -161,6 +216,32 @@
   </style>
 </head>
 <body>
+
+  <!-- ── Startup modal ── -->
+  <div id="startupOverlay" role="dialog" aria-modal="true" aria-labelledby="startupTitle">
+    <div class="startup-card">
+      <div class="startup-logo">
+        <svg viewBox="0 0 64 64" aria-hidden="true" fill="none">
+          <path d="M10 48 L24 18 L32 32 L40 12 L54 48" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M12 54H52" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
+        </svg>
+        <span>FinFolio</span>
+      </div>
+      <div>
+        <h2 id="startupTitle">Welcome back</h2>
+        <p>Load your saved data file to pick up where you left off, or start a fresh session.</p>
+      </div>
+      <div class="startup-btns">
+        <button class="btn btn-primary" id="startupLoadBtn">📂 Load my data (JSON)</button>
+        <button class="btn btn-secondary" id="startupSampleBtn">Load sample data</button>
+        <button class="btn btn-secondary" id="startupFreshBtn">Start fresh</button>
+      </div>
+      <p class="startup-hint">Your data never leaves your device. Save often with the Save button in the top bar.</p>
+      <input id="startupFileInput" type="file" accept="application/json" class="hidden" />
+    </div>
+  </div>
+
+  <!-- ── Sidebar ── -->
   <aside class="sidebar">
     <div class="brand">
       <svg viewBox="0 0 64 64" aria-label="FinFolio logo" fill="none" role="img">
@@ -189,15 +270,21 @@
     </div>
   </aside>
 
+  <!-- ── Main ── -->
   <main class="main">
     <header class="topbar">
-      <div>
+      <div class="topbar-left">
         <h2 id="viewTitle">Dashboard</h2>
         <p id="viewSubtitle">Track goals, budgets, expected cash flow, and actual results.</p>
       </div>
-      <div class="pill-row">
-        <span class="pill" id="recordCountPill">0 records</span>
-        <span class="pill" id="goalCountPill">0 goals</span>
+      <div class="topbar-right">
+        <div class="pill-row">
+          <span class="pill" id="recordCountPill">0 records</span>
+          <span class="pill" id="goalCountPill">0 goals</span>
+        </div>
+        <button id="saveBtn" class="clean" title="Save data to JSON file" aria-label="Save data">
+          <span id="saveDot"></span> Save
+        </button>
       </div>
     </header>
 
@@ -386,67 +473,154 @@
     <button class="nav-btn" data-view="notes">Notes</button>
   </nav>
 
+  <div id="toast" role="status" aria-live="polite"></div>
+
   <script>
     const state = { transactions: [], notes: [], parsedRows: [] };
+    let isDirty = false;
 
     const defaultSample = {
       transactions: [
-        { id: crypto.randomUUID(), date: '2026-06-01', amount: 2500, category: 'Paycheck', type: 'income', status: 'actual', tag: 'Salary', description: 'Primary payroll deposit' },
-        { id: crypto.randomUUID(), date: '2026-06-02', amount: 1200, category: 'Rent', type: 'expense', status: 'actual', tag: 'Housing', description: 'Monthly rent payment' },
-        { id: crypto.randomUUID(), date: '2026-06-03', amount: 300, category: 'Emergency Fund', type: 'goal', status: 'expected', tag: 'Savings', description: 'Planned emergency fund contribution' },
-        { id: crypto.randomUUID(), date: '2026-06-04', amount: 420, category: 'Freelance', type: 'income', status: 'expected', tag: 'Side income', description: 'Expected project payment' },
-        { id: crypto.randomUUID(), date: '2026-06-05', amount: 86.4, category: 'Groceries', type: 'expense', status: 'actual', tag: 'Food', description: 'Weekly grocery run' },
-        { id: crypto.randomUUID(), date: '2026-06-06', amount: 150, category: 'Vacation', type: 'goal', status: 'expected', tag: 'Travel', description: 'Save toward travel fund' }
+        { id: crypto.randomUUID(), date: '2026-06-01', amount: 2500,  category: 'Paycheck',       type: 'income',  status: 'actual',   tag: 'Salary',     description: 'Primary payroll deposit' },
+        { id: crypto.randomUUID(), date: '2026-06-02', amount: 1200,  category: 'Rent',           type: 'expense', status: 'actual',   tag: 'Housing',    description: 'Monthly rent payment' },
+        { id: crypto.randomUUID(), date: '2026-06-03', amount: 300,   category: 'Emergency Fund', type: 'goal',    status: 'expected', tag: 'Savings',    description: 'Planned emergency fund contribution' },
+        { id: crypto.randomUUID(), date: '2026-06-04', amount: 420,   category: 'Freelance',      type: 'income',  status: 'expected', tag: 'Side income',description: 'Expected project payment' },
+        { id: crypto.randomUUID(), date: '2026-06-05', amount: 86.4,  category: 'Groceries',      type: 'expense', status: 'actual',   tag: 'Food',       description: 'Weekly grocery run' },
+        { id: crypto.randomUUID(), date: '2026-06-06', amount: 150,   category: 'Vacation',       type: 'goal',    status: 'expected', tag: 'Travel',     description: 'Save toward travel fund' }
       ],
       notes: [
-        { id: crypto.randomUUID(), title: 'Emergency fund target', tag: 'Savings', body: 'Build three months of expenses before increasing discretionary spending.', createdAt: new Date().toISOString() },
-        { id: crypto.randomUUID(), title: 'Income stability', tag: 'Cash flow', body: 'Use expected freelance payments to stress test the monthly budget before committing them.', createdAt: new Date().toISOString() }
+        { id: crypto.randomUUID(), title: 'Emergency fund target', tag: 'Savings',    body: 'Build three months of expenses before increasing discretionary spending.', createdAt: new Date().toISOString() },
+        { id: crypto.randomUUID(), title: 'Income stability',      tag: 'Cash flow',  body: 'Use expected freelance payments to stress test the monthly budget before committing them.', createdAt: new Date().toISOString() }
       ]
     };
 
     const viewMeta = {
-      dashboard: ['Dashboard', 'Track goals, budgets, expected cash flow, and actual results.'],
+      dashboard:    ['Dashboard',    'Track goals, budgets, expected cash flow, and actual results.'],
       transactions: ['Transactions', 'Record planned and actual financial events.'],
-      planner: ['Planner', 'Compare budget assumptions against real-world outcomes.'],
-      documents: ['Documents', 'Parse raw financial text into candidate transactions.'],
-      notes: ['Notes', 'Capture the why behind financial decisions and goals.']
+      planner:      ['Planner',      'Compare budget assumptions against real-world outcomes.'],
+      documents:    ['Documents',    'Parse raw financial text into candidate transactions.'],
+      notes:        ['Notes',        'Capture the why behind financial decisions and goals.']
     };
 
-    const currency = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+    const currency  = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
     const shortDate = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     let cashflowChart, budgetChart;
 
-    function todayISO() { return new Date().toISOString().split('T')[0]; }
+    // ── Dirty state ──
+    function markDirty() {
+      isDirty = true;
+      const btn = document.getElementById('saveBtn');
+      btn.classList.remove('clean');
+      btn.classList.add('dirty');
+    }
+    function markClean() {
+      isDirty = false;
+      const btn = document.getElementById('saveBtn');
+      btn.classList.remove('dirty');
+      btn.classList.add('clean');
+    }
 
+    // ── Toast ──
+    let toastTimer;
+    function showToast(msg) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
+    }
+
+    // ── Export / Import ──
+    function exportData() {
+      const blob = new Blob([JSON.stringify({ transactions: state.transactions, notes: state.notes }, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'finfolio-data.json';
+      a.click();
+      URL.revokeObjectURL(a.href);
+      markClean();
+      showToast('✓ Data saved to finfolio-data.json');
+    }
+
+    function importData(file, onDone) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const parsed = JSON.parse(reader.result);
+          state.transactions = Array.isArray(parsed.transactions) ? parsed.transactions : [];
+          state.notes        = Array.isArray(parsed.notes)        ? parsed.notes        : [];
+          state.parsedRows   = [];
+          renderAll();
+          markClean();
+          showToast('✓ Data loaded from ' + file.name);
+          if (onDone) onDone();
+        } catch (e) { alert('Invalid JSON file. Please choose a valid finfolio-data.json.'); }
+      };
+      reader.readAsText(file);
+    }
+
+    // ── Startup modal ──
+    function dismissStartup() {
+      document.getElementById('startupOverlay').classList.add('hidden');
+    }
+
+    function initStartup() {
+      const overlay    = document.getElementById('startupOverlay');
+      const loadBtn    = document.getElementById('startupLoadBtn');
+      const sampleBtn  = document.getElementById('startupSampleBtn');
+      const freshBtn   = document.getElementById('startupFreshBtn');
+      const fileInput  = document.getElementById('startupFileInput');
+
+      loadBtn.addEventListener('click', () => fileInput.click());
+      fileInput.addEventListener('change', e => {
+        if (e.target.files[0]) importData(e.target.files[0], dismissStartup);
+      });
+      sampleBtn.addEventListener('click', () => {
+        state.transactions = structuredClone(defaultSample.transactions);
+        state.notes        = structuredClone(defaultSample.notes);
+        renderAll();
+        markDirty();
+        dismissStartup();
+        showToast('Sample data loaded — save when ready.');
+      });
+      freshBtn.addEventListener('click', () => {
+        dismissStartup();
+      });
+    }
+
+    // ── Unsaved-changes warning ──
+    window.addEventListener('beforeunload', e => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = 'You have unsaved changes. Save your data before closing.';
+      }
+    });
+
+    // ── Helpers ──
+    function todayISO() { return new Date().toISOString().split('T')[0]; }
     function setDefaults() { document.getElementById('txDate').value = todayISO(); }
 
     function switchView(view) {
       document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
       document.querySelector('#' + view + '-view').classList.add('active');
       document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.view === view));
-      document.getElementById('viewTitle').textContent = viewMeta[view][0];
+      document.getElementById('viewTitle').textContent    = viewMeta[view][0];
       document.getElementById('viewSubtitle').textContent = viewMeta[view][1];
       if (view === 'dashboard') renderDashboard();
     }
 
     function attachNav() {
-      document.querySelectorAll('.nav-btn').forEach(btn => {
-        btn.addEventListener('click', () => switchView(btn.dataset.view));
-      });
+      document.querySelectorAll('.nav-btn').forEach(btn => btn.addEventListener('click', () => switchView(btn.dataset.view)));
     }
 
-    function amountClass(value) {
-      if (value > 0) return 'positive';
-      if (value < 0) return 'negative';
-      return 'neutral';
-    }
+    function amountClass(value) { return value > 0 ? 'positive' : value < 0 ? 'negative' : 'neutral'; }
 
     function summarize() {
-      const actualIncome   = state.transactions.filter(t => t.type === 'income'  && t.status === 'actual').reduce((s, t) => s + t.amount, 0);
-      const actualExpense  = state.transactions.filter(t => t.type === 'expense' && t.status === 'actual').reduce((s, t) => s + t.amount, 0);
-      const expectedIncome  = state.transactions.filter(t => t.type === 'income'  && t.status === 'expected').reduce((s, t) => s + t.amount, 0);
-      const expectedExpense = state.transactions.filter(t => t.type === 'expense' && t.status === 'expected').reduce((s, t) => s + t.amount, 0);
-      const goalTotal = state.transactions.filter(t => t.type === 'goal').reduce((s, t) => s + t.amount, 0);
+      const actualIncome   = state.transactions.filter(t => t.type==='income'  && t.status==='actual').reduce((s,t)=>s+t.amount,0);
+      const actualExpense  = state.transactions.filter(t => t.type==='expense' && t.status==='actual').reduce((s,t)=>s+t.amount,0);
+      const expectedIncome  = state.transactions.filter(t => t.type==='income'  && t.status==='expected').reduce((s,t)=>s+t.amount,0);
+      const expectedExpense = state.transactions.filter(t => t.type==='expense' && t.status==='expected').reduce((s,t)=>s+t.amount,0);
+      const goalTotal = state.transactions.filter(t => t.type==='goal').reduce((s,t)=>s+t.amount,0);
       const netActual = actualIncome - actualExpense;
       const savingsRate = actualIncome ? (netActual / actualIncome) * 100 : 0;
       return { actualIncome, actualExpense, expectedIncome, expectedExpense, goalTotal, netActual, savingsRate };
@@ -454,47 +628,42 @@
 
     function groupMonthlyNet() {
       const months = new Map();
-      state.transactions.filter(t => t.status === 'actual').forEach(t => {
-        const key = t.date.slice(0, 7);
-        if (!months.has(key)) months.set(key, 0);
-        months.set(key, months.get(key) + (t.type === 'income' ? t.amount : t.type === 'expense' ? -t.amount : 0));
+      state.transactions.filter(t => t.status==='actual').forEach(t => {
+        const key = t.date.slice(0,7);
+        months.set(key, (months.get(key)||0) + (t.type==='income'?t.amount:t.type==='expense'?-t.amount:0));
       });
-      return [...months.entries()].sort(([a], [b]) => a.localeCompare(b));
+      return [...months.entries()].sort(([a],[b])=>a.localeCompare(b));
     }
 
     function categoryBudgetRows() {
       const rows = {};
       state.transactions.forEach(t => {
-        if (!rows[t.category]) rows[t.category] = { expected: 0, actual: 0 };
-        if (t.status === 'expected') rows[t.category].expected += t.amount;
-        if (t.status === 'actual')   rows[t.category].actual   += t.amount;
+        if (!rows[t.category]) rows[t.category] = { expected:0, actual:0 };
+        if (t.status==='expected') rows[t.category].expected += t.amount;
+        if (t.status==='actual')   rows[t.category].actual   += t.amount;
       });
-      return Object.entries(rows).sort((a, b) => (b[1].actual + b[1].expected) - (a[1].actual + a[1].expected));
+      return Object.entries(rows).sort((a,b)=>(b[1].actual+b[1].expected)-(a[1].actual+a[1].expected));
     }
 
     function goalGroups() {
       const goals = {};
-      state.transactions.filter(t => t.type === 'goal').forEach(t => {
+      state.transactions.filter(t=>t.type==='goal').forEach(t => {
         const key = t.tag || t.category;
-        goals[key] = (goals[key] || 0) + t.amount;
+        goals[key] = (goals[key]||0) + t.amount;
       });
       return goals;
     }
 
     function generateInsights(summary) {
-      const insights = [];
-      if (!state.transactions.length) {
-        insights.push('Start by adding a few income, expense, and savings goal records to activate the dashboard.');
-        return insights;
-      }
-      insights.push('Net actual cash flow is ' + currency.format(summary.netActual) + '.');
-      insights.push('Actual expenses are ' + currency.format(summary.actualExpense) + ' against expected expenses of ' + currency.format(summary.expectedExpense) + '.');
-      insights.push('Savings goals total ' + currency.format(summary.goalTotal) + ' across ' + Object.keys(goalGroups()).length + ' tracked targets.');
-      if (summary.savingsRate > 20)
-        insights.push('Savings rate is ' + summary.savingsRate.toFixed(1) + '%, which is a strong cushion.');
-      else
-        insights.push('Savings rate is ' + summary.savingsRate.toFixed(1) + '%; increasing income or reducing discretionary expense could improve resilience.');
-      return insights;
+      if (!state.transactions.length) return ['Start by adding a few income, expense, and savings goal records to activate the dashboard.'];
+      return [
+        'Net actual cash flow is ' + currency.format(summary.netActual) + '.',
+        'Actual expenses are ' + currency.format(summary.actualExpense) + ' against expected expenses of ' + currency.format(summary.expectedExpense) + '.',
+        'Savings goals total ' + currency.format(summary.goalTotal) + ' across ' + Object.keys(goalGroups()).length + ' tracked targets.',
+        summary.savingsRate > 20
+          ? 'Savings rate is ' + summary.savingsRate.toFixed(1) + '%, which is a strong cushion.'
+          : 'Savings rate is ' + summary.savingsRate.toFixed(1) + '%; increasing income or reducing discretionary expense could improve resilience.'
+      ];
     }
 
     function renderDashboard() {
@@ -508,44 +677,42 @@
       document.getElementById('kpiGrid').innerHTML = kpis.map(([label, value, delta]) =>
         '<article class="card kpi-card">' +
         '<span class="kpi-label">' + label + '</span>' +
-        '<span class="kpi-value ' + amountClass(label === 'Actual expenses' ? -value : value) + '">' + currency.format(value) + '</span>' +
+        '<span class="kpi-value ' + amountClass(label==='Actual expenses'?-value:value) + '">' + currency.format(value) + '</span>' +
         '<span class="kpi-delta neutral">' + delta + '</span>' +
         '</article>'
       ).join('');
 
-      document.getElementById('insightsList').innerHTML = generateInsights(summary).map(i => '<li>' + i + '</li>').join('');
+      document.getElementById('insightsList').innerHTML = generateInsights(summary).map(i=>'<li>'+i+'</li>').join('');
 
       const goals = goalGroups();
       const goalEntries = Object.entries(goals);
       document.getElementById('goalProgressList').innerHTML = goalEntries.length
         ? goalEntries.map(([name, value]) =>
-            '<div class="card" style="padding:1rem;"><div class="kpi-label">' + name + '</div><div class="kpi-value">' + currency.format(value) + '</div></div>'
+            '<div class="card" style="padding:1rem;"><div class="kpi-label">'+name+'</div><div class="kpi-value">'+currency.format(value)+'</div></div>'
           ).join('')
         : '<div class="empty">No savings goals recorded yet.</div>';
 
       const monthly = groupMonthlyNet();
-      const labels = monthly.map(([m]) => m);
-      const data   = monthly.map(([, v]) => v);
       const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim();
       if (cashflowChart) cashflowChart.destroy();
       cashflowChart = new Chart(document.getElementById('cashflowChart'), {
         type: 'line',
-        data: { labels, datasets: [{ label: 'Net cash flow', data, borderColor: primaryColor, backgroundColor: 'rgba(1,105,111,0.12)', tension: 0.35, fill: true }] },
-        options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { ticks: { callback: v => currency.format(v) } } } }
+        data: { labels: monthly.map(([m])=>m), datasets: [{ label:'Net cash flow', data:monthly.map(([,v])=>v), borderColor:primaryColor, backgroundColor:'rgba(1,105,111,0.12)', tension:0.35, fill:true }] },
+        options: { responsive:true, plugins:{legend:{display:false}}, scales:{y:{ticks:{callback:v=>currency.format(v)}}} }
       });
 
-      const budgetRows = categoryBudgetRows().slice(0, 6);
+      const budgetRows = categoryBudgetRows().slice(0,6);
       if (budgetChart) budgetChart.destroy();
       budgetChart = new Chart(document.getElementById('budgetChart'), {
         type: 'bar',
         data: {
-          labels: budgetRows.map(([cat]) => cat),
+          labels: budgetRows.map(([cat])=>cat),
           datasets: [
-            { label: 'Expected', data: budgetRows.map(([, v]) => v.expected), backgroundColor: 'rgba(218,113,1,0.55)' },
-            { label: 'Actual',   data: budgetRows.map(([, v]) => v.actual),   backgroundColor: 'rgba(1,105,111,0.75)' }
+            { label:'Expected', data:budgetRows.map(([,v])=>v.expected), backgroundColor:'rgba(218,113,1,0.55)' },
+            { label:'Actual',   data:budgetRows.map(([,v])=>v.actual),   backgroundColor:'rgba(1,105,111,0.75)' }
           ]
         },
-        options: { responsive: true, plugins: { legend: { position: 'bottom' } }, scales: { y: { ticks: { callback: v => currency.format(v) } } } }
+        options: { responsive:true, plugins:{legend:{position:'bottom'}}, scales:{y:{ticks:{callback:v=>currency.format(v)}}} }
       });
     }
 
@@ -554,21 +721,22 @@
       if (!state.transactions.length) {
         tbody.innerHTML = '<tr><td colspan="8"><div class="empty">No transactions yet. Add one above or load sample data.</div></td></tr>';
       } else {
-        tbody.innerHTML = [...state.transactions].sort((a, b) => b.date.localeCompare(a.date)).map(t =>
+        tbody.innerHTML = [...state.transactions].sort((a,b)=>b.date.localeCompare(a.date)).map(t =>
           '<tr>' +
-          '<td>' + shortDate.format(new Date(t.date + 'T12:00:00')) + '</td>' +
-          '<td>' + t.category + '</td>' +
-          '<td><span class="status-badge ' + (t.type === 'income' ? 'badge-income' : t.type === 'expense' ? 'badge-expense' : 'badge-plan') + '">' + t.type + '</span></td>' +
-          '<td>' + t.status + '</td>' +
-          '<td>' + currency.format(t.amount) + '</td>' +
-          '<td>' + (t.tag || '\u2014') + '</td>' +
-          '<td>' + (t.description || '\u2014') + '</td>' +
-          '<td><button class="btn btn-secondary delete-tx" data-id="' + t.id + '" style="padding:0.25rem 0.75rem;min-height:36px;">Delete</button></td>' +
+          '<td>'+shortDate.format(new Date(t.date+'T12:00:00'))+'</td>' +
+          '<td>'+t.category+'</td>' +
+          '<td><span class="status-badge '+(t.type==='income'?'badge-income':t.type==='expense'?'badge-expense':'badge-plan')+'">'+t.type+'</span></td>' +
+          '<td>'+t.status+'</td>' +
+          '<td>'+currency.format(t.amount)+'</td>' +
+          '<td>'+(t.tag||'\u2014')+'</td>' +
+          '<td>'+(t.description||'\u2014')+'</td>' +
+          '<td><button class="btn btn-secondary delete-tx" data-id="'+t.id+'" style="padding:0.25rem 0.75rem;min-height:36px;">Delete</button></td>' +
           '</tr>'
         ).join('');
       }
       tbody.querySelectorAll('.delete-tx').forEach(btn => btn.addEventListener('click', () => {
         state.transactions = state.transactions.filter(t => t.id !== btn.dataset.id);
+        markDirty();
         renderAll();
       }));
     }
@@ -578,56 +746,49 @@
       document.getElementById('plannerTableBody').innerHTML = rows.length
         ? rows.map(([category, values]) => {
             const variance = values.actual - values.expected;
-            return '<tr><td>' + category + '</td><td>' + currency.format(values.expected) + '</td><td>' + currency.format(values.actual) + '</td><td class="' + amountClass(-variance) + '">' + currency.format(variance) + '</td></tr>';
+            return '<tr><td>'+category+'</td><td>'+currency.format(values.expected)+'</td><td>'+currency.format(values.actual)+'</td><td class="'+amountClass(-variance)+'">'+currency.format(variance)+'</td></tr>';
           }).join('')
         : '<tr><td colspan="4"><div class="empty">No planner data yet.</div></td></tr>';
 
       const summary = summarize();
       document.getElementById('plannerSummary').innerHTML = [
-        'Expected net: ' + currency.format(summary.expectedIncome - summary.expectedExpense) + '.',
-        'Actual net: ' + currency.format(summary.netActual) + '.',
-        'Difference between expected and actual expense: ' + currency.format(summary.actualExpense - summary.expectedExpense) + '.',
-        'Total records: ' + state.transactions.length + '.'
-      ].map(x => '<li>' + x + '</li>').join('');
+        'Expected net: '+currency.format(summary.expectedIncome-summary.expectedExpense)+'.',
+        'Actual net: '+currency.format(summary.netActual)+'.',
+        'Difference between expected and actual expense: '+currency.format(summary.actualExpense-summary.expectedExpense)+'.',
+        'Total records: '+state.transactions.length+'.'
+      ].map(x=>'<li>'+x+'</li>').join('');
     }
 
     function parseDocument(text) {
       const dateRegex   = /(\d{4}-\d{2}-\d{2}|\d{1,2}\/\d{1,2}\/\d{4})/;
       const amountRegex = /\$?(-?\d+(?:,\d{3})*(?:\.\d{2})?)/;
-      return text.split(/\n+/).map(l => l.trim()).filter(Boolean).reduce((rows, line) => {
-        const dM = line.match(dateRegex);
-        const aM = line.match(amountRegex);
-        if (!dM || !aM) return rows;
+      return text.split(/\n+/).map(l=>l.trim()).filter(Boolean).reduce((rows,line) => {
+        const dM = line.match(dateRegex); const aM = line.match(amountRegex);
+        if (!dM||!aM) return rows;
         let date = dM[1];
-        if (date.includes('/')) {
-          const [m, d, y] = date.split('/');
-          date = y + '-' + m.padStart(2, '0') + '-' + d.padStart(2, '0');
-        }
-        const amount = parseFloat(aM[1].replace(/,/g, ''));
-        const description = line.replace(dM[0], '').replace(aM[0], '').trim();
+        if (date.includes('/')) { const [m,d,y]=date.split('/'); date=y+'-'+m.padStart(2,'0')+'-'+d.padStart(2,'0'); }
+        const amount = parseFloat(aM[1].replace(/,/g,''));
+        const description = line.replace(dM[0],'').replace(aM[0],'').trim();
         const lower = description.toLowerCase();
-        const type = /(payroll|salary|deposit|income|refund)/.test(lower) ? 'income'
-                   : /(goal|save|saving|fund)/.test(lower) ? 'goal' : 'expense';
-        rows.push({ date, description: description || 'Imported row', amount: Math.abs(amount), type });
+        const type = /(payroll|salary|deposit|income|refund)/.test(lower)?'income':/(goal|save|saving|fund)/.test(lower)?'goal':'expense';
+        rows.push({ date, description:description||'Imported row', amount:Math.abs(amount), type });
         return rows;
       }, []);
     }
 
     function renderParsedRows() {
       document.getElementById('parsedTableBody').innerHTML = state.parsedRows.length
-        ? state.parsedRows.map(r =>
-            '<tr><td>' + r.date + '</td><td>' + r.description + '</td><td>' + currency.format(r.amount) + '</td><td>' + r.type + '</td></tr>'
-          ).join('')
+        ? state.parsedRows.map(r=>'<tr><td>'+r.date+'</td><td>'+r.description+'</td><td>'+currency.format(r.amount)+'</td><td>'+r.type+'</td></tr>').join('')
         : '<tr><td colspan="4"><div class="empty">No parsed rows yet.</div></td></tr>';
     }
 
     function renderNotes() {
       document.getElementById('notesGrid').innerHTML = state.notes.length
-        ? [...state.notes].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).map(note =>
+        ? [...state.notes].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)).map(note =>
             '<article class="card note-card">' +
-            '<div class="note-meta">' + shortDate.format(new Date(note.createdAt)) + ' \u00b7 ' + (note.tag || 'General note') + '</div>' +
-            '<h3 style="font-size:var(--text-base);font-weight:700;">' + note.title + '</h3>' +
-            '<p style="font-size:var(--text-sm);color:var(--color-text-muted);">' + note.body + '</p>' +
+            '<div class="note-meta">'+shortDate.format(new Date(note.createdAt))+' \u00b7 '+(note.tag||'General note')+'</div>' +
+            '<h3 style="font-size:var(--text-base);font-weight:700;">'+note.title+'</h3>' +
+            '<p style="font-size:var(--text-sm);color:var(--color-text-muted);">'+note.body+'</p>' +
             '</article>'
           ).join('')
         : '<div class="empty">No notes yet.</div>';
@@ -635,40 +796,10 @@
 
     function renderCounts() {
       document.getElementById('recordCountPill').textContent = state.transactions.length + ' records';
-      document.getElementById('goalCountPill').textContent = Object.keys(goalGroups()).length + ' goals';
+      document.getElementById('goalCountPill').textContent   = Object.keys(goalGroups()).length + ' goals';
     }
 
-    function renderAll() {
-      renderCounts();
-      renderDashboard();
-      renderTransactions();
-      renderPlanner();
-      renderParsedRows();
-      renderNotes();
-    }
-
-    function exportData() {
-      const blob = new Blob([JSON.stringify({ transactions: state.transactions, notes: state.notes }, null, 2)], { type: 'application/json' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'finfolio-data.json';
-      a.click();
-      URL.revokeObjectURL(a.href);
-    }
-
-    function importData(file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        try {
-          const parsed = JSON.parse(reader.result);
-          state.transactions = Array.isArray(parsed.transactions) ? parsed.transactions : [];
-          state.notes = Array.isArray(parsed.notes) ? parsed.notes : [];
-          state.parsedRows = [];
-          renderAll();
-        } catch (e) { alert('Invalid JSON file.'); }
-      };
-      reader.readAsText(file);
-    }
+    function renderAll() { renderCounts(); renderDashboard(); renderTransactions(); renderPlanner(); renderParsedRows(); renderNotes(); }
 
     function bindForms() {
       document.getElementById('transactionForm').addEventListener('submit', e => {
@@ -683,9 +814,7 @@
           tag: document.getElementById('txTag').value.trim(),
           description: document.getElementById('txDescription').value.trim()
         });
-        e.target.reset();
-        setDefaults();
-        renderAll();
+        e.target.reset(); setDefaults(); markDirty(); renderAll();
       });
 
       document.getElementById('noteForm').addEventListener('submit', e => {
@@ -697,62 +826,51 @@
           body: document.getElementById('noteBody').value.trim(),
           createdAt: new Date().toISOString()
         });
-        e.target.reset();
-        renderAll();
+        e.target.reset(); markDirty(); renderAll();
       });
     }
 
     function bindButtons() {
       document.getElementById('themeToggle').addEventListener('click', () => {
         const root = document.documentElement;
-        root.setAttribute('data-theme', root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+        root.setAttribute('data-theme', root.getAttribute('data-theme')==='dark'?'light':'dark');
         renderDashboard();
       });
+      document.getElementById('saveBtn').addEventListener('click', exportData);
       document.getElementById('exportBtn').addEventListener('click', exportData);
       document.getElementById('importBtn').addEventListener('click', () => document.getElementById('fileInput').click());
-      document.getElementById('fileInput').addEventListener('change', e => {
-        if (e.target.files[0]) importData(e.target.files[0]);
-      });
+      document.getElementById('fileInput').addEventListener('change', e => { if (e.target.files[0]) importData(e.target.files[0]); });
       document.getElementById('seedSampleBtn').addEventListener('click', () => {
         state.transactions = structuredClone(defaultSample.transactions);
-        state.notes = structuredClone(defaultSample.notes);
-        renderAll();
+        state.notes        = structuredClone(defaultSample.notes);
+        markDirty(); renderAll();
       });
       document.querySelectorAll('.quick-add').forEach(btn => btn.addEventListener('click', () => {
-        document.getElementById('txDate').value = todayISO();
-        document.getElementById('txAmount').value = btn.dataset.amount;
+        document.getElementById('txDate').value     = todayISO();
+        document.getElementById('txAmount').value   = btn.dataset.amount;
         document.getElementById('txCategory').value = btn.dataset.category;
-        document.getElementById('txType').value = btn.dataset.type;
-        document.getElementById('txStatus').value = 'actual';
+        document.getElementById('txType').value     = btn.dataset.type;
+        document.getElementById('txStatus').value   = 'actual';
         switchView('transactions');
       }));
       document.getElementById('parseDocBtn').addEventListener('click', () => {
         const text = document.getElementById('docText').value.trim();
         if (!text) return;
-        state.parsedRows = parseDocument(text);
-        renderParsedRows();
+        state.parsedRows = parseDocument(text); renderParsedRows();
       });
       document.getElementById('importParsedBtn').addEventListener('click', () => {
         if (!state.parsedRows.length) return;
-        state.parsedRows.forEach(r => {
-          state.transactions.push({
-            id: crypto.randomUUID(),
-            date: r.date,
-            amount: r.amount,
-            category: r.description,
-            type: r.type,
-            status: 'actual',
-            tag: '',
-            description: 'Imported via document parser'
-          });
-        });
+        state.parsedRows.forEach(r => state.transactions.push({
+          id: crypto.randomUUID(), date:r.date, amount:r.amount, category:r.description,
+          type:r.type, status:'actual', tag:'', description:'Imported via document parser'
+        }));
         state.parsedRows = [];
-        renderAll();
-        switchView('transactions');
+        markDirty(); renderAll(); switchView('transactions');
       });
     }
 
     function init() {
+      initStartup();
       attachNav();
       bindForms();
       bindButtons();
