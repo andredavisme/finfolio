@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FinFolio - Personal Financial Portfolio</title>
+  <link rel="preconnect" href="https://api.fontshare.com" />
+  <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&f[]=clash-display@600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root, [data-theme="light"] {
+      --text-xs: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
+      --text-sm: clamp(0.875rem, 0.8rem + 0.35vw, 1rem);
+      --text-base: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+      --text-lg: clamp(1.125rem, 1rem + 0.75vw, 1.5rem);
+      --text-xl: clamp(1.5rem, 1.2rem + 1.25vw, 2.25rem);
+      --space-1: 0.25rem; --space-2: 0.5rem; --space-3: 0.75rem; --space-4: 1rem;
+      --space-5: 1.25rem; --space-6: 1.5rem; --space-8: 2rem; --space-10: 2.5rem;
+      --space-12: 3rem; --space-16: 4rem;
+      --color-bg: #f7f6f2; --color-surface: #f9f8f5; --color-surface-2: #fbfbf9;
+      --color-surface-offset: #f3f0ec; --color-border: #d4d1ca; --color-divider: #dcd9d5;
+      --color-text: #28251d; --color-text-muted: #7a7974; --color-text-faint: #bab9b4;
+      --color-primary: #01696f; --color-primary-hover: #0c4e54; --color-primary-highlight: #cedcd8;
+      --color-success: #437a22; --color-error: #a13544; --color-orange: #da7101; --color-blue: #006494;
+      --radius-sm: 0.375rem; --radius-md: 0.5rem; --radius-lg: 0.75rem; --radius-xl: 1rem; --radius-full: 9999px;
+      --shadow-sm: 0 1px 2px rgba(40,37,29,0.06); --shadow-md: 0 4px 12px rgba(40,37,29,0.08); --shadow-lg: 0 12px 32px rgba(40,37,29,0.12);
+      --font-display: 'Clash Display', sans-serif; --font-body: 'Satoshi', sans-serif;
+      --transition: 180ms cubic-bezier(0.16, 1, 0.3, 1);
+      --content-wide: 1200px;
+    }
+    [data-theme="dark"] {
+      --color-bg: #171614; --color-surface: #1c1b19; --color-surface-2: #201f1d; --color-surface-offset: #1d1c1a;
+      --color-border: #393836; --color-divider: #262523; --color-text: #cdccca; --color-text-muted: #979592; --color-text-faint: #6d6b68;
+      --color-primary: #4f98a3; --color-primary-hover: #227f8b; --color-primary-highlight: #313b3b;
+      --color-success: #6daa45; --color-error: #dd6974; --color-orange: #fdab43; --color-blue: #5591c7;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.2); --shadow-md: 0 4px 12px rgba(0,0,0,0.3); --shadow-lg: 0 12px 32px rgba(0,0,0,0.4);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      min-height: 100dvh; line-height: 1.6; font-family: var(--font-body); font-size: var(--text-base);
+      color: var(--color-text); background: var(--color-bg); display: grid; grid-template-columns: 280px 1fr;
+    }
+    button, input, textarea, select { font: inherit; color: inherit; }
+    button { cursor: pointer; border: none; }
+    a { color: inherit; text-decoration: none; }
+    img, canvas, svg { max-width: 100%; display: block; }
+    .sidebar {
+      position: sticky; top: 0; height: 100dvh; background: var(--color-surface); border-right: 1px solid var(--color-border);
+      padding: var(--space-6); display: flex; flex-direction: column; gap: var(--space-6); overflow-y: auto;
+    }
+    .brand { display: flex; align-items: center; gap: var(--space-3); }
+    .brand svg { width: 36px; height: 36px; color: var(--color-primary); flex-shrink: 0; }
+    .brand-text h1 { font-family: var(--font-display); font-size: var(--text-lg); line-height: 1; }
+    .brand-text p { font-size: var(--text-xs); color: var(--color-text-muted); }
+    .nav { display: grid; gap: var(--space-2); }
+    .nav button {
+      display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-4);
+      border-radius: var(--radius-lg); background: transparent; text-align: left; font-size: var(--text-sm);
+      transition: all var(--transition); width: 100%;
+    }
+    .nav button.active, .nav button:hover { background: var(--color-primary-highlight); color: var(--color-primary); }
+    .sidebar-footer { margin-top: auto; display: grid; gap: var(--space-3); }
+    .theme-toggle, .file-actions button {
+      width: 100%; padding: var(--space-3) var(--space-4); border-radius: var(--radius-lg); background: var(--color-surface-offset);
+      border: 1px solid var(--color-border); transition: all var(--transition); font-size: var(--text-sm);
+    }
+    .theme-toggle:hover, .file-actions button:hover { background: var(--color-surface-2); }
+    .main { min-width: 0; }
+    .topbar {
+      position: sticky; top: 0; z-index: 10; display: flex; justify-content: space-between; align-items: center;
+      padding: var(--space-4) var(--space-6); background: color-mix(in srgb, var(--color-bg) 88%, transparent);
+      backdrop-filter: blur(12px); border-bottom: 1px solid var(--color-divider);
+    }
+    .topbar h2 { font-size: var(--text-xl); font-family: var(--font-display); }
+    .topbar p { color: var(--color-text-muted); font-size: var(--text-sm); }
+    .content { padding: var(--space-6); max-width: var(--content-wide); }
+    .view { display: none; gap: var(--space-6); }
+    .view.active { display: grid; }
+    .grid { display: grid; gap: var(--space-4); }
+    .kpi-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .two-col { grid-template-columns: 1.2fr 0.8fr; }
+    .three-col { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .card {
+      background: var(--color-surface); border: 1px solid rgba(122,121,116,0.16); border-radius: var(--radius-xl);
+      padding: var(--space-5); box-shadow: var(--shadow-sm);
+    }
+    .card h3 { font-size: var(--text-lg); margin-bottom: var(--space-2); }
+    .card-subtitle { color: var(--color-text-muted); font-size: var(--text-sm); margin-bottom: var(--space-4); }
+    .kpi-card { display: grid; gap: var(--space-2); }
+    .kpi-label { font-size: var(--text-xs); color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
+    .kpi-value { font-size: var(--text-xl); font-weight: 700; font-variant-numeric: tabular-nums lining-nums; }
+    .kpi-delta { font-size: var(--text-sm); }
+    .positive { color: var(--color-success); }
+    .negative { color: var(--color-error); }
+    .neutral { color: var(--color-text-muted); }
+    form { display: grid; gap: var(--space-4); }
+    .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); }
+    .field { display: grid; gap: var(--space-2); }
+    .field label { font-size: var(--text-sm); font-weight: 600; }
+    .field input, .field select, .field textarea {
+      width: 100%; background: var(--color-surface-2); border: 1px solid var(--color-border); border-radius: var(--radius-md);
+      padding: var(--space-3) var(--space-4); min-height: 44px;
+    }
+    .field input:focus, .field select:focus, .field textarea:focus {
+      outline: 2px solid var(--color-primary); outline-offset: 2px;
+    }
+    .field textarea { min-height: 110px; resize: vertical; }
+    .btn-row { display: flex; gap: var(--space-3); flex-wrap: wrap; }
+    .btn {
+      padding: var(--space-3) var(--space-4); border-radius: var(--radius-lg); min-height: 44px; font-size: var(--text-sm);
+      transition: all var(--transition);
+    }
+    .btn-primary { background: var(--color-primary); color: white; }
+    .btn-primary:hover { background: var(--color-primary-hover); }
+    .btn-secondary { background: var(--color-surface-offset); border: 1px solid var(--color-border); }
+    .btn-secondary:hover { background: var(--color-surface-2); }
+    .btn-danger { background: var(--color-error); color: white; }
+    .pill-row { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+    .pill { padding: var(--space-2) var(--space-3); border-radius: var(--radius-full); background: var(--color-primary-highlight); color: var(--color-primary); font-size: var(--text-xs); }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: var(--space-3); border-bottom: 1px solid var(--color-divider); text-align: left; font-size: var(--text-sm); vertical-align: top; }
+    th { color: var(--color-text-muted); font-weight: 600; }
+    tbody tr:hover { background: color-mix(in srgb, var(--color-primary-highlight) 32%, transparent); }
+    .table-wrap { overflow-x: auto; }
+    .status-badge { padding: 0.2rem 0.55rem; border-radius: var(--radius-full); font-size: var(--text-xs); font-weight: 700; }
+    .badge-income { background: rgba(67,122,34,0.14); color: var(--color-success); }
+    .badge-expense { background: rgba(161,53,68,0.14); color: var(--color-error); }
+    .badge-plan { background: rgba(218,113,1,0.14); color: var(--color-orange); }
+    .badge-note { background: rgba(0,100,148,0.14); color: var(--color-blue); }
+    .empty { color: var(--color-text-muted); font-size: var(--text-sm); padding: var(--space-6); text-align: center; background: var(--color-surface-offset); border-radius: var(--radius-lg); }
+    .note-card { display: grid; gap: var(--space-2); }
+    .note-meta { font-size: var(--text-xs); color: var(--color-text-muted); }
+    .upload-box {
+      border: 1px dashed var(--color-border); background: var(--color-surface-offset); padding: var(--space-5); border-radius: var(--radius-lg); display: grid; gap: var(--space-3);
+    }
+    .insight-list { display: grid; gap: var(--space-3); }
+    .insight-list li { list-style: none; padding: var(--space-3) var(--space-4); background: var(--color-surface-offset); border-radius: var(--radius-lg); font-size: var(--text-sm); }
+    .mobile-nav { display: none; }
+    .hidden { display: none !important; }
+    @media (max-width: 1024px) {
+      body { grid-template-columns: 88px 1fr; }
+      .brand-text, .nav button span, .sidebar-footer .file-actions, .sidebar-footer .theme-toggle span { display: none; }
+      .nav button { justify-content: center; }
+    }
+    @media (max-width: 768px) {
+      body { display: block; }
+      .sidebar { display: none; }
+      .content { padding: var(--space-4); padding-bottom: 6rem; }
+      .kpi-grid, .two-col, .three-col, .form-grid { grid-template-columns: 1fr; }
+      .mobile-nav {
+        position: fixed; bottom: 0; left: 0; right: 0; display: grid; grid-template-columns: repeat(5, 1fr); gap: var(--space-2);
+        padding: var(--space-2); background: color-mix(in srgb, var(--color-surface) 92%, transparent); backdrop-filter: blur(12px); border-top: 1px solid var(--color-border); z-index: 100;
+      }
+      .mobile-nav button { padding: var(--space-2); border-radius: var(--radius-lg); background: transparent; font-size: var(--text-xs); }
+      .mobile-nav button.active { background: var(--color-primary-highlight); color: var(--color-primary); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { transition: none !important; animation: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="brand">
+      <svg viewBox="0 0 64 64" aria-label="FinFolio logo" fill="none" role="img">
+        <path d="M10 48 L24 18 L32 32 L40 12 L54 48" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M12 54H52" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
+      </svg>
+      <div class="brand-text">
+        <h1>FinFolio</h1>
+        <p>Personal financial portfolio</p>
+      </div>
+    </div>
+    <nav class="nav" aria-label="Primary navigation">
+      <button class="nav-btn active" data-view="dashboard"><span>Dashboard</span></button>
+      <button class="nav-btn" data-view="transactions"><span>Transactions</span></button>
+      <button class="nav-btn" data-view="planner"><span>Planner</span></button>
+      <button class="nav-btn" data-view="documents"><span>Documents</span></button>
+      <button class="nav-btn" data-view="notes"><span>Notes</span></button>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="file-actions grid">
+        <button id="importBtn">Import JSON</button>
+        <button id="exportBtn">Export JSON</button>
+        <input id="fileInput" type="file" accept="application/json" class="hidden" />
+      </div>
+      <button class="theme-toggle" id="themeToggle"><span>Toggle theme</span></button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div>
+        <h2 id="viewTitle">Dashboard</h2>
+        <p id="viewSubtitle">Track goals, budgets, expected cash flow, and actual results.</p>
+      </div>
+      <div class="pill-row">
+        <span class="pill" id="recordCountPill">0 records</span>
+        <span class="pill" id="goalCountPill">0 goals</span>
+      </div>
+    </header>
+
+    <section class="content">
+
+      <section class="view active" id="dashboard-view">
+        <div class="grid kpi-grid" id="kpiGrid"></div>
+        <div class="grid two-col">
+          <article class="card">
+            <h3>Cash flow trend</h3>
+            <p class="card-subtitle">Monthly actual income minus actual expenses.</p>
+            <canvas id="cashflowChart" height="120"></canvas>
+          </article>
+          <article class="card">
+            <h3>Budget mix</h3>
+            <p class="card-subtitle">Expected vs actual expenses by category.</p>
+            <canvas id="budgetChart" height="120"></canvas>
+          </article>
+        </div>
+        <div class="grid two-col">
+          <article class="card">
+            <h3>Insights</h3>
+            <p class="card-subtitle">Auto-generated takeaways from your current data.</p>
+            <ul class="insight-list" id="insightsList"></ul>
+          </article>
+          <article class="card">
+            <h3>Goal progress</h3>
+            <p class="card-subtitle">Amounts tagged as savings goals vs actual saved income.</p>
+            <div id="goalProgressList" class="grid"></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="view" id="transactions-view">
+        <div class="grid two-col">
+          <article class="card">
+            <h3>Add transaction</h3>
+            <p class="card-subtitle">Capture planned or actual income, expenses, and savings targets.</p>
+            <form id="transactionForm">
+              <div class="form-grid">
+                <div class="field"><label for="txDate">Date</label><input id="txDate" type="date" required /></div>
+                <div class="field"><label for="txAmount">Amount</label><input id="txAmount" type="number" step="0.01" required placeholder="0.00" /></div>
+                <div class="field"><label for="txCategory">Category</label><input id="txCategory" type="text" required placeholder="Rent, Payroll, Vacation" /></div>
+                <div class="field"><label for="txType">Type</label>
+                  <select id="txType">
+                    <option value="expense">Expense</option>
+                    <option value="income">Income</option>
+                    <option value="goal">Savings goal</option>
+                  </select>
+                </div>
+                <div class="field"><label for="txStatus">Status</label>
+                  <select id="txStatus">
+                    <option value="actual">Actual</option>
+                    <option value="expected">Expected</option>
+                  </select>
+                </div>
+                <div class="field"><label for="txTag">Goal or tag</label><input id="txTag" type="text" placeholder="Emergency fund, Car, Payroll" /></div>
+              </div>
+              <div class="field"><label for="txDescription">Description</label><textarea id="txDescription" placeholder="Context, merchant, invoice, or note."></textarea></div>
+              <div class="btn-row">
+                <button class="btn btn-primary" type="submit">Save transaction</button>
+                <button class="btn btn-secondary" type="button" id="seedSampleBtn">Load sample data</button>
+              </div>
+            </form>
+          </article>
+          <article class="card">
+            <h3>Quick add</h3>
+            <p class="card-subtitle">Fast presets for common entries.</p>
+            <div class="btn-row">
+              <button class="btn btn-secondary quick-add" data-type="expense" data-category="Groceries" data-amount="85">Groceries</button>
+              <button class="btn btn-secondary quick-add" data-type="expense" data-category="Rent" data-amount="1200">Rent</button>
+              <button class="btn btn-secondary quick-add" data-type="income" data-category="Paycheck" data-amount="2500">Paycheck</button>
+              <button class="btn btn-secondary quick-add" data-type="goal" data-category="Emergency Fund" data-amount="300">Savings goal</button>
+            </div>
+            <div class="upload-box" style="margin-top:1rem;">
+              <strong>Data model</strong>
+              <p style="font-size:var(--text-sm);color:var(--color-text-muted);">Each record stores date, amount, category, type, status, description, and goal tag. Exported JSON is ready to map into Supabase or another DB later.</p>
+            </div>
+          </article>
+        </div>
+        <article class="card">
+          <h3>Transaction ledger</h3>
+          <p class="card-subtitle">Full transaction history with planned and actual values.</p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Date</th><th>Category</th><th>Type</th><th>Status</th><th>Amount</th><th>Tag</th><th>Description</th><th>Action</th></tr>
+              </thead>
+              <tbody id="transactionTableBody"></tbody>
+            </table>
+          </div>
+        </article>
+      </section>
+
+      <section class="view" id="planner-view">
+        <div class="grid two-col">
+          <article class="card">
+            <h3>Budget vs actual</h3>
+            <p class="card-subtitle">Compare planned and real totals by category.</p>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Category</th><th>Expected</th><th>Actual</th><th>Variance</th></tr></thead>
+                <tbody id="plannerTableBody"></tbody>
+              </table>
+            </div>
+          </article>
+          <article class="card">
+            <h3>Portfolio summary</h3>
+            <p class="card-subtitle">High-level operating picture for a person or organization.</p>
+            <ul class="insight-list" id="plannerSummary"></ul>
+          </article>
+        </div>
+      </section>
+
+      <section class="view" id="documents-view">
+        <div class="grid two-col">
+          <article class="card">
+            <h3>Document parser</h3>
+            <p class="card-subtitle">Paste statement text, receipts, or exported notes and extract likely finance entries.</p>
+            <div class="field">
+              <label for="docText">Raw document text</label>
+              <textarea id="docText" placeholder="Example: 2026-06-01 Grocery Mart $84.22&#10;2026-06-03 Payroll Deposit $2500"></textarea>
+            </div>
+            <div class="btn-row">
+              <button class="btn btn-primary" id="parseDocBtn" type="button">Parse document</button>
+              <button class="btn btn-secondary" id="importParsedBtn" type="button">Import parsed rows</button>
+            </div>
+          </article>
+          <article class="card">
+            <h3>Parser rules</h3>
+            <p class="card-subtitle">The parser looks for dates, dollar amounts, and descriptive text.</p>
+            <ul class="insight-list">
+              <li>Date formats: YYYY-MM-DD, MM/DD/YYYY.</li>
+              <li>Amounts: values like $84.22 or 1200.00.</li>
+              <li>Type inference: payroll, salary, deposit = income; otherwise expense unless marked as goal.</li>
+            </ul>
+          </article>
+        </div>
+        <article class="card">
+          <h3>Parsed rows</h3>
+          <p class="card-subtitle">Review extracted transactions before importing.</p>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Date</th><th>Description</th><th>Amount</th><th>Type</th></tr></thead>
+              <tbody id="parsedTableBody"></tbody>
+            </table>
+          </div>
+        </article>
+      </section>
+
+      <section class="view" id="notes-view">
+        <div class="grid two-col">
+          <article class="card">
+            <h3>Add note</h3>
+            <p class="card-subtitle">Capture goals, reflections, and decision context.</p>
+            <form id="noteForm">
+              <div class="form-grid">
+                <div class="field"><label for="noteTitle">Title</label><input id="noteTitle" type="text" required placeholder="Why I am saving for this" /></div>
+                <div class="field"><label for="noteTag">Tag</label><input id="noteTag" type="text" placeholder="Emergency fund, Travel, KPI" /></div>
+              </div>
+              <div class="field"><label for="noteBody">Note</label><textarea id="noteBody" required placeholder="What matters, constraints, next steps, or reflections."></textarea></div>
+              <button class="btn btn-primary" type="submit">Save note</button>
+            </form>
+          </article>
+          <article class="card">
+            <h3>How to share</h3>
+            <p class="card-subtitle">No app store required.</p>
+            <ul class="insight-list">
+              <li>Zip and share the HTML file directly.</li>
+              <li>Host on GitHub Pages, Netlify, Vercel, or Cloudflare Pages.</li>
+              <li>Install as a local desktop app with a wrapper later if needed.</li>
+            </ul>
+          </article>
+        </div>
+        <div class="grid three-col" id="notesGrid"></div>
+      </section>
+
+    </section>
+  </main>
+
+  <nav class="mobile-nav" aria-label="Mobile navigation">
+    <button class="nav-btn active" data-view="dashboard">Dash</button>
+    <button class="nav-btn" data-view="transactions">Ledger</button>
+    <button class="nav-btn" data-view="planner">Plan</button>
+    <button class="nav-btn" data-view="documents">Docs</button>
+    <button class="nav-btn" data-view="notes">Notes</button>
+  </nav>
+
+  <script>
+    const state = { transactions: [], notes: [], parsedRows: [] };
+
+    const defaultSample = {
+      transactions: [
+        { id: crypto.randomUUID(), date: '2026-06-01', amount: 2500, category: 'Paycheck', type: 'income', status: 'actual', tag: 'Salary', description: 'Primary payroll deposit' },
+        { id: crypto.randomUUID(), date: '2026-06-02', amount: 1200, category: 'Rent', type: 'expense', status: 'actual', tag: 'Housing', description: 'Monthly rent payment' },
+        { id: crypto.randomUUID(), date: '2026-06-03', amount: 300, category: 'Emergency Fund', type: 'goal', status: 'expected', tag: 'Savings', description: 'Planned emergency fund contribution' },
+        { id: crypto.randomUUID(), date: '2026-06-04', amount: 420, category: 'Freelance', type: 'income', status: 'expected', tag: 'Side income', description: 'Expected project payment' },
+        { id: crypto.randomUUID(), date: '2026-06-05', amount: 86.4, category: 'Groceries', type: 'expense', status: 'actual', tag: 'Food', description: 'Weekly grocery run' },
+        { id: crypto.randomUUID(), date: '2026-06-06', amount: 150, category: 'Vacation', type: 'goal', status: 'expected', tag: 'Travel', description: 'Save toward travel fund' }
+      ],
+      notes: [
+        { id: crypto.randomUUID(), title: 'Emergency fund target', tag: 'Savings', body: 'Build three months of expenses before increasing discretionary spending.', createdAt: new Date().toISOString() },
+        { id: crypto.randomUUID(), title: 'Income stability', tag: 'Cash flow', body: 'Use expected freelance payments to stress test the monthly budget before committing them.', createdAt: new Date().toISOString() }
+      ]
+    };
+
+    const viewMeta = {
+      dashboard: ['Dashboard', 'Track goals, budgets, expected cash flow, and actual results.'],
+      transactions: ['Transactions', 'Record planned and actual financial events.'],
+      planner: ['Planner', 'Compare budget assumptions against real-world outcomes.'],
+      documents: ['Documents', 'Parse raw financial text into candidate transactions.'],
+      notes: ['Notes', 'Capture the why behind financial decisions and goals.']
+    };
+
+    const currency = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+    const shortDate = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    let cashflowChart, budgetChart;
+
+    function todayISO() { return new Date().toISOString().split('T')[0]; }
+
+    function setDefaults() { document.getElementById('txDate').value = todayISO(); }
+
+    function switchView(view) {
+      document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+      document.querySelector('#' + view + '-view').classList.add('active');
+      document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.view === view));
+      document.getElementById('viewTitle').textContent = viewMeta[view][0];
+      document.getElementById('viewSubtitle').textContent = viewMeta[view][1];
+      if (view === 'dashboard') renderDashboard();
+    }
+
+    function attachNav() {
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.addEventListener('click', () => switchView(btn.dataset.view));
+      });
+    }
+
+    function amountClass(value) {
+      if (value > 0) return 'positive';
+      if (value < 0) return 'negative';
+      return 'neutral';
+    }
+
+    function summarize() {
+      const actualIncome   = state.transactions.filter(t => t.type === 'income'  && t.status === 'actual').reduce((s, t) => s + t.amount, 0);
+      const actualExpense  = state.transactions.filter(t => t.type === 'expense' && t.status === 'actual').reduce((s, t) => s + t.amount, 0);
+      const expectedIncome  = state.transactions.filter(t => t.type === 'income'  && t.status === 'expected').reduce((s, t) => s + t.amount, 0);
+      const expectedExpense = state.transactions.filter(t => t.type === 'expense' && t.status === 'expected').reduce((s, t) => s + t.amount, 0);
+      const goalTotal = state.transactions.filter(t => t.type === 'goal').reduce((s, t) => s + t.amount, 0);
+      const netActual = actualIncome - actualExpense;
+      const savingsRate = actualIncome ? (netActual / actualIncome) * 100 : 0;
+      return { actualIncome, actualExpense, expectedIncome, expectedExpense, goalTotal, netActual, savingsRate };
+    }
+
+    function groupMonthlyNet() {
+      const months = new Map();
+      state.transactions.filter(t => t.status === 'actual').forEach(t => {
+        const key = t.date.slice(0, 7);
+        if (!months.has(key)) months.set(key, 0);
+        months.set(key, months.get(key) + (t.type === 'income' ? t.amount : t.type === 'expense' ? -t.amount : 0));
+      });
+      return [...months.entries()].sort(([a], [b]) => a.localeCompare(b));
+    }
+
+    function categoryBudgetRows() {
+      const rows = {};
+      state.transactions.forEach(t => {
+        if (!rows[t.category]) rows[t.category] = { expected: 0, actual: 0 };
+        if (t.status === 'expected') rows[t.category].expected += t.amount;
+        if (t.status === 'actual')   rows[t.category].actual   += t.amount;
+      });
+      return Object.entries(rows).sort((a, b) => (b[1].actual + b[1].expected) - (a[1].actual + a[1].expected));
+    }
+
+    function goalGroups() {
+      const goals = {};
+      state.transactions.filter(t => t.type === 'goal').forEach(t => {
+        const key = t.tag || t.category;
+        goals[key] = (goals[key] || 0) + t.amount;
+      });
+      return goals;
+    }
+
+    function generateInsights(summary) {
+      const insights = [];
+      if (!state.transactions.length) {
+        insights.push('Start by adding a few income, expense, and savings goal records to activate the dashboard.');
+        return insights;
+      }
+      insights.push('Net actual cash flow is ' + currency.format(summary.netActual) + '.');
+      insights.push('Actual expenses are ' + currency.format(summary.actualExpense) + ' against expected expenses of ' + currency.format(summary.expectedExpense) + '.');
+      insights.push('Savings goals total ' + currency.format(summary.goalTotal) + ' across ' + Object.keys(goalGroups()).length + ' tracked targets.');
+      if (summary.savingsRate > 20)
+        insights.push('Savings rate is ' + summary.savingsRate.toFixed(1) + '%, which is a strong cushion.');
+      else
+        insights.push('Savings rate is ' + summary.savingsRate.toFixed(1) + '%; increasing income or reducing discretionary expense could improve resilience.');
+      return insights;
+    }
+
+    function renderDashboard() {
+      const summary = summarize();
+      const kpis = [
+        ['Actual income',   summary.actualIncome,  'Expected ' + currency.format(summary.expectedIncome)],
+        ['Actual expenses', summary.actualExpense,  'Expected ' + currency.format(summary.expectedExpense)],
+        ['Net cash flow',   summary.netActual,      summary.savingsRate.toFixed(1) + '% savings rate'],
+        ['Savings goals',   summary.goalTotal,      Object.keys(goalGroups()).length + ' active goals']
+      ];
+      document.getElementById('kpiGrid').innerHTML = kpis.map(([label, value, delta]) =>
+        '<article class="card kpi-card">' +
+        '<span class="kpi-label">' + label + '</span>' +
+        '<span class="kpi-value ' + amountClass(label === 'Actual expenses' ? -value : value) + '">' + currency.format(value) + '</span>' +
+        '<span class="kpi-delta neutral">' + delta + '</span>' +
+        '</article>'
+      ).join('');
+
+      document.getElementById('insightsList').innerHTML = generateInsights(summary).map(i => '<li>' + i + '</li>').join('');
+
+      const goals = goalGroups();
+      const goalEntries = Object.entries(goals);
+      document.getElementById('goalProgressList').innerHTML = goalEntries.length
+        ? goalEntries.map(([name, value]) =>
+            '<div class="card" style="padding:1rem;"><div class="kpi-label">' + name + '</div><div class="kpi-value">' + currency.format(value) + '</div></div>'
+          ).join('')
+        : '<div class="empty">No savings goals recorded yet.</div>';
+
+      const monthly = groupMonthlyNet();
+      const labels = monthly.map(([m]) => m);
+      const data   = monthly.map(([, v]) => v);
+      const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim();
+      if (cashflowChart) cashflowChart.destroy();
+      cashflowChart = new Chart(document.getElementById('cashflowChart'), {
+        type: 'line',
+        data: { labels, datasets: [{ label: 'Net cash flow', data, borderColor: primaryColor, backgroundColor: 'rgba(1,105,111,0.12)', tension: 0.35, fill: true }] },
+        options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { ticks: { callback: v => currency.format(v) } } } }
+      });
+
+      const budgetRows = categoryBudgetRows().slice(0, 6);
+      if (budgetChart) budgetChart.destroy();
+      budgetChart = new Chart(document.getElementById('budgetChart'), {
+        type: 'bar',
+        data: {
+          labels: budgetRows.map(([cat]) => cat),
+          datasets: [
+            { label: 'Expected', data: budgetRows.map(([, v]) => v.expected), backgroundColor: 'rgba(218,113,1,0.55)' },
+            { label: 'Actual',   data: budgetRows.map(([, v]) => v.actual),   backgroundColor: 'rgba(1,105,111,0.75)' }
+          ]
+        },
+        options: { responsive: true, plugins: { legend: { position: 'bottom' } }, scales: { y: { ticks: { callback: v => currency.format(v) } } } }
+      });
+    }
+
+    function renderTransactions() {
+      const tbody = document.getElementById('transactionTableBody');
+      if (!state.transactions.length) {
+        tbody.innerHTML = '<tr><td colspan="8"><div class="empty">No transactions yet. Add one above or load sample data.</div></td></tr>';
+      } else {
+        tbody.innerHTML = [...state.transactions].sort((a, b) => b.date.localeCompare(a.date)).map(t =>
+          '<tr>' +
+          '<td>' + shortDate.format(new Date(t.date + 'T12:00:00')) + '</td>' +
+          '<td>' + t.category + '</td>' +
+          '<td><span class="status-badge ' + (t.type === 'income' ? 'badge-income' : t.type === 'expense' ? 'badge-expense' : 'badge-plan') + '">' + t.type + '</span></td>' +
+          '<td>' + t.status + '</td>' +
+          '<td>' + currency.format(t.amount) + '</td>' +
+          '<td>' + (t.tag || '\u2014') + '</td>' +
+          '<td>' + (t.description || '\u2014') + '</td>' +
+          '<td><button class="btn btn-secondary delete-tx" data-id="' + t.id + '" style="padding:0.25rem 0.75rem;min-height:36px;">Delete</button></td>' +
+          '</tr>'
+        ).join('');
+      }
+      tbody.querySelectorAll('.delete-tx').forEach(btn => btn.addEventListener('click', () => {
+        state.transactions = state.transactions.filter(t => t.id !== btn.dataset.id);
+        renderAll();
+      }));
+    }
+
+    function renderPlanner() {
+      const rows = categoryBudgetRows();
+      document.getElementById('plannerTableBody').innerHTML = rows.length
+        ? rows.map(([category, values]) => {
+            const variance = values.actual - values.expected;
+            return '<tr><td>' + category + '</td><td>' + currency.format(values.expected) + '</td><td>' + currency.format(values.actual) + '</td><td class="' + amountClass(-variance) + '">' + currency.format(variance) + '</td></tr>';
+          }).join('')
+        : '<tr><td colspan="4"><div class="empty">No planner data yet.</div></td></tr>';
+
+      const summary = summarize();
+      document.getElementById('plannerSummary').innerHTML = [
+        'Expected net: ' + currency.format(summary.expectedIncome - summary.expectedExpense) + '.',
+        'Actual net: ' + currency.format(summary.netActual) + '.',
+        'Difference between expected and actual expense: ' + currency.format(summary.actualExpense - summary.expectedExpense) + '.',
+        'Total records: ' + state.transactions.length + '.'
+      ].map(x => '<li>' + x + '</li>').join('');
+    }
+
+    function parseDocument(text) {
+      const dateRegex   = /(\d{4}-\d{2}-\d{2}|\d{1,2}\/\d{1,2}\/\d{4})/;
+      const amountRegex = /\$?(-?\d+(?:,\d{3})*(?:\.\d{2})?)/;
+      return text.split(/\n+/).map(l => l.trim()).filter(Boolean).reduce((rows, line) => {
+        const dM = line.match(dateRegex);
+        const aM = line.match(amountRegex);
+        if (!dM || !aM) return rows;
+        let date = dM[1];
+        if (date.includes('/')) {
+          const [m, d, y] = date.split('/');
+          date = y + '-' + m.padStart(2, '0') + '-' + d.padStart(2, '0');
+        }
+        const amount = parseFloat(aM[1].replace(/,/g, ''));
+        const description = line.replace(dM[0], '').replace(aM[0], '').trim();
+        const lower = description.toLowerCase();
+        const type = /(payroll|salary|deposit|income|refund)/.test(lower) ? 'income'
+                   : /(goal|save|saving|fund)/.test(lower) ? 'goal' : 'expense';
+        rows.push({ date, description: description || 'Imported row', amount: Math.abs(amount), type });
+        return rows;
+      }, []);
+    }
+
+    function renderParsedRows() {
+      document.getElementById('parsedTableBody').innerHTML = state.parsedRows.length
+        ? state.parsedRows.map(r =>
+            '<tr><td>' + r.date + '</td><td>' + r.description + '</td><td>' + currency.format(r.amount) + '</td><td>' + r.type + '</td></tr>'
+          ).join('')
+        : '<tr><td colspan="4"><div class="empty">No parsed rows yet.</div></td></tr>';
+    }
+
+    function renderNotes() {
+      document.getElementById('notesGrid').innerHTML = state.notes.length
+        ? [...state.notes].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).map(note =>
+            '<article class="card note-card">' +
+            '<div class="note-meta">' + shortDate.format(new Date(note.createdAt)) + ' \u00b7 ' + (note.tag || 'General note') + '</div>' +
+            '<h3 style="font-size:var(--text-base);font-weight:700;">' + note.title + '</h3>' +
+            '<p style="font-size:var(--text-sm);color:var(--color-text-muted);">' + note.body + '</p>' +
+            '</article>'
+          ).join('')
+        : '<div class="empty">No notes yet.</div>';
+    }
+
+    function renderCounts() {
+      document.getElementById('recordCountPill').textContent = state.transactions.length + ' records';
+      document.getElementById('goalCountPill').textContent = Object.keys(goalGroups()).length + ' goals';
+    }
+
+    function renderAll() {
+      renderCounts();
+      renderDashboard();
+      renderTransactions();
+      renderPlanner();
+      renderParsedRows();
+      renderNotes();
+    }
+
+    function exportData() {
+      const blob = new Blob([JSON.stringify({ transactions: state.transactions, notes: state.notes }, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'finfolio-data.json';
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+
+    function importData(file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const parsed = JSON.parse(reader.result);
+          state.transactions = Array.isArray(parsed.transactions) ? parsed.transactions : [];
+          state.notes = Array.isArray(parsed.notes) ? parsed.notes : [];
+          state.parsedRows = [];
+          renderAll();
+        } catch (e) { alert('Invalid JSON file.'); }
+      };
+      reader.readAsText(file);
+    }
+
+    function bindForms() {
+      document.getElementById('transactionForm').addEventListener('submit', e => {
+        e.preventDefault();
+        state.transactions.push({
+          id: crypto.randomUUID(),
+          date: document.getElementById('txDate').value,
+          amount: Number(document.getElementById('txAmount').value),
+          category: document.getElementById('txCategory').value.trim(),
+          type: document.getElementById('txType').value,
+          status: document.getElementById('txStatus').value,
+          tag: document.getElementById('txTag').value.trim(),
+          description: document.getElementById('txDescription').value.trim()
+        });
+        e.target.reset();
+        setDefaults();
+        renderAll();
+      });
+
+      document.getElementById('noteForm').addEventListener('submit', e => {
+        e.preventDefault();
+        state.notes.push({
+          id: crypto.randomUUID(),
+          title: document.getElementById('noteTitle').value.trim(),
+          tag: document.getElementById('noteTag').value.trim(),
+          body: document.getElementById('noteBody').value.trim(),
+          createdAt: new Date().toISOString()
+        });
+        e.target.reset();
+        renderAll();
+      });
+    }
+
+    function bindButtons() {
+      document.getElementById('themeToggle').addEventListener('click', () => {
+        const root = document.documentElement;
+        root.setAttribute('data-theme', root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+        renderDashboard();
+      });
+      document.getElementById('exportBtn').addEventListener('click', exportData);
+      document.getElementById('importBtn').addEventListener('click', () => document.getElementById('fileInput').click());
+      document.getElementById('fileInput').addEventListener('change', e => {
+        if (e.target.files[0]) importData(e.target.files[0]);
+      });
+      document.getElementById('seedSampleBtn').addEventListener('click', () => {
+        state.transactions = structuredClone(defaultSample.transactions);
+        state.notes = structuredClone(defaultSample.notes);
+        renderAll();
+      });
+      document.querySelectorAll('.quick-add').forEach(btn => btn.addEventListener('click', () => {
+        document.getElementById('txDate').value = todayISO();
+        document.getElementById('txAmount').value = btn.dataset.amount;
+        document.getElementById('txCategory').value = btn.dataset.category;
+        document.getElementById('txType').value = btn.dataset.type;
+        document.getElementById('txStatus').value = 'actual';
+        switchView('transactions');
+      }));
+      document.getElementById('parseDocBtn').addEventListener('click', () => {
+        const text = document.getElementById('docText').value.trim();
+        if (!text) return;
+        state.parsedRows = parseDocument(text);
+        renderParsedRows();
+      });
+      document.getElementById('importParsedBtn').addEventListener('click', () => {
+        if (!state.parsedRows.length) return;
+        state.parsedRows.forEach(r => {
+          state.transactions.push({
+            id: crypto.randomUUID(),
+            date: r.date,
+            amount: r.amount,
+            category: r.description,
+            type: r.type,
+            status: 'actual',
+            tag: '',
+            description: 'Imported via document parser'
+          });
+        });
+        state.parsedRows = [];
+        renderAll();
+        switchView('transactions');
+      });
+    }
+
+    function init() {
+      attachNav();
+      bindForms();
+      bindButtons();
+      setDefaults();
+      renderAll();
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
