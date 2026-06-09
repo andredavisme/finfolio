@@ -241,6 +241,62 @@ main {
   pointer-events: none;
   user-select: none;
 }
+/* Frequency selector */
+.freq-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  margin-top: var(--space-2);
+}
+.freq-label {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+.freq-select {
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  border: 1.5px solid var(--color-border);
+  background: var(--color-surface);
+  font-size: var(--text-xs);
+  color: var(--color-text);
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%237a7974' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 1.75rem;
+}
+.freq-select:focus { outline: 2px solid var(--color-primary); outline-offset: -1px; border-color: var(--color-primary); }
+.freq-equiv {
+  font-size: var(--text-xs);
+  color: var(--color-primary);
+  font-weight: 500;
+  min-height: 1.4em;
+}
+/* Snapshot card with per-row frequency */
+.snapshot-row-freq {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+.snapshot-row-freq-select {
+  padding: 2px var(--space-3);
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%237a7974' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  padding-right: 1.5rem;
+}
 .tile-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -317,7 +373,7 @@ main {
 }
 .snapshot-row-label { flex: 1; font-size: var(--text-sm); color: var(--color-text); }
 .snapshot-row-input {
-  width: 140px;
+  width: 120px;
   text-align: right;
   padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-md);
@@ -426,6 +482,7 @@ main {
 }
 .insight-card-value.positive { color: var(--color-success); }
 .insight-card-value.negative { color: var(--color-error); }
+.done-actions { display: flex; flex-direction: column; align-items: center; gap: var(--space-3); }
 .btn-dashboard {
   display: inline-flex;
   align-items: center;
@@ -438,9 +495,22 @@ main {
   font-weight: 500;
   border: none;
   box-shadow: var(--shadow-md);
-  margin-top: var(--space-4);
+  text-decoration: none;
 }
 .btn-dashboard:hover { background: var(--color-primary-hover); box-shadow: var(--shadow-lg); }
+.btn-restart {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-6);
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  border: 1px solid var(--color-border);
+  text-decoration: none;
+}
+.btn-restart:hover { background: var(--color-surface-offset); color: var(--color-text); }
 footer {
   padding: var(--space-6) var(--space-8);
   text-align: center;
@@ -482,6 +552,7 @@ footer {
       <div class="step-dot" data-step="4"></div>
       <span class="step-label" id="progressLabel">Step 1 of 5</span>
     </div>
+
     <!-- STEP 0 — Welcome -->
     <section class="step-panel visible" id="step-0" aria-label="Welcome">
       <div class="step-header">
@@ -498,6 +569,18 @@ footer {
           <label class="field-label" for="firstName">Your first name <span style="color:var(--color-text-faint); font-weight:400">(optional)</span></label>
           <input id="firstName" class="field-input" type="text" placeholder="e.g. Alex" autocomplete="given-name" maxlength="40">
         </div>
+        <!-- Pay frequency asked up-front so Steps 1 & 2 can show smart equivalents -->
+        <div class="field">
+          <label class="field-label" for="payFrequency">How often do you get paid?</label>
+          <span class="field-hint">We'll use this to convert any amount you enter into a monthly number automatically.</span>
+          <select id="payFrequency" class="field-input" style="max-width:280px;">
+            <option value="monthly">Monthly (once a month)</option>
+            <option value="semimonthly">Twice a month (24×/year)</option>
+            <option value="biweekly" selected>Every two weeks (26×/year)</option>
+            <option value="weekly">Weekly (52×/year)</option>
+            <option value="quarterly">Quarterly (4×/year)</option>
+          </select>
+        </div>
         <div class="field">
           <label class="field-label" for="budgetGoal">What's one thing you want to feel better about?</label>
           <span class="field-hint">Write however feels natural — this is just for you.</span>
@@ -509,26 +592,49 @@ footer {
         <button class="btn-next" onclick="goTo(1)">Let's do it <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
       </div>
     </section>
+
     <!-- STEP 1 — Income -->
     <section class="step-panel" id="step-1" aria-label="Income">
       <div class="step-header">
         <span class="step-tag">Money coming in</span>
         <h1 class="step-title">How much do you <em>take home</em> each month?</h1>
-        <p class="step-subtitle">After taxes. The number that actually hits your account. One income source is enough to start.</p>
+        <p class="step-subtitle">After taxes. The number that actually hits your account. Use your per-paycheck amount — we'll convert it to monthly automatically.</p>
       </div>
       <div class="reassurance" role="note">
         <svg class="reassurance-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-        <p>If your pay varies, use your <strong>lowest typical month</strong>. It's safer to plan conservatively and be pleasantly surprised than to overshoot and feel behind.</p>
+        <p>If your pay varies, use your <strong>lowest typical paycheck</strong>. It's safer to plan conservatively and be pleasantly surprised than to overshoot and feel behind.</p>
       </div>
       <div class="field-group">
         <div class="field">
-          <label class="field-label" for="incomePrimary">Primary take-home pay (monthly)</label>
-          <div class="input-wrap"><span class="input-prefix">$</span><input id="incomePrimary" class="field-input has-prefix" type="number" placeholder="0" min="0" inputmode="numeric"></div>
+          <label class="field-label" for="incomePrimary">Primary take-home pay</label>
+          <div class="input-wrap"><span class="input-prefix">$</span><input id="incomePrimary" class="field-input has-prefix" type="number" placeholder="0" min="0" inputmode="numeric" oninput="updateIncomeEquiv()"></div>
+          <div class="freq-row">
+            <span class="freq-label">Per</span>
+            <select class="freq-select" id="incomePrimaryFreq" onchange="updateIncomeEquiv()">
+              <option value="monthly">month</option>
+              <option value="semimonthly">half-month</option>
+              <option value="biweekly" selected>2 weeks</option>
+              <option value="weekly">week</option>
+              <option value="quarterly">quarter</option>
+            </select>
+            <span class="freq-equiv" id="incomePrimaryEquiv"></span>
+          </div>
         </div>
         <div class="field">
-          <label class="field-label" for="incomeOther">Other regular income <span style="color:var(--color-text-faint); font-weight:400">(monthly, if any)</span></label>
+          <label class="field-label" for="incomeOther">Other regular income <span style="color:var(--color-text-faint); font-weight:400">(if any)</span></label>
           <span class="field-hint">Freelance, side work, rental, child support, etc. Leave blank if none or irregular.</span>
-          <div class="input-wrap"><span class="input-prefix">$</span><input id="incomeOther" class="field-input has-prefix" type="number" placeholder="0" min="0" inputmode="numeric"></div>
+          <div class="input-wrap"><span class="input-prefix">$</span><input id="incomeOther" class="field-input has-prefix" type="number" placeholder="0" min="0" inputmode="numeric" oninput="updateOtherEquiv()"></div>
+          <div class="freq-row">
+            <span class="freq-label">Per</span>
+            <select class="freq-select" id="incomeOtherFreq" onchange="updateOtherEquiv()">
+              <option value="monthly" selected>month</option>
+              <option value="semimonthly">half-month</option>
+              <option value="biweekly">2 weeks</option>
+              <option value="weekly">week</option>
+              <option value="quarterly">quarter</option>
+            </select>
+            <span class="freq-equiv" id="incomeOtherEquiv"></span>
+          </div>
         </div>
         <div class="field">
           <label class="field-label">How consistent is your income?</label>
@@ -544,34 +650,105 @@ footer {
         <button class="btn-next" onclick="goTo(2)">Next: Fixed costs <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
       </div>
     </section>
+
     <!-- STEP 2 — Fixed Costs -->
     <section class="step-panel" id="step-2" aria-label="Fixed costs">
       <div class="step-header">
         <span class="step-tag">Bills that don't change</span>
-        <h1 class="step-title">What are your <em>locked-in</em> monthly costs?</h1>
-        <p class="step-subtitle">These are bills where you know the number. Rent, car payment, phone — anything you pay the same amount each month. Leave anything blank that you're not sure of.</p>
+        <h1 class="step-title">What are your <em>locked-in</em> costs?</h1>
+        <p class="step-subtitle">Enter each bill in whatever frequency you pay it — weekly, monthly, quarterly, etc. We'll convert everything to monthly automatically.</p>
       </div>
       <div class="snapshot-card">
         <div class="snapshot-section">
           <div class="snapshot-section-title">Housing</div>
-          <div class="snapshot-row"><span class="snapshot-row-label">Rent or mortgage</span><input type="number" class="snapshot-row-input" placeholder="$0" min="0" inputmode="numeric" data-fixed="housing_rent"></div>
+          <div class="snapshot-row">
+            <span class="snapshot-row-label">Rent or mortgage</span>
+            <select class="snapshot-row-freq-select" data-freq-for="housing_rent">
+              <option value="monthly" selected>/ mo</option>
+              <option value="semimonthly">/ half-mo</option>
+              <option value="biweekly">/ 2 wks</option>
+              <option value="weekly">/ wk</option>
+              <option value="quarterly">/ qtr</option>
+            </select>
+            <input type="number" class="snapshot-row-input" placeholder="$0" min="0" inputmode="numeric" data-fixed="housing_rent">
+          </div>
         </div>
         <div class="snapshot-section">
           <div class="snapshot-section-title">Transportation</div>
-          <div class="snapshot-row"><span class="snapshot-row-label">Car payment</span><input type="number" class="snapshot-row-input" placeholder="$0" min="0" inputmode="numeric" data-fixed="transport_car"></div>
-          <div class="snapshot-row"><span class="snapshot-row-label">Insurance</span><input type="number" class="snapshot-row-input" placeholder="$0" min="0" inputmode="numeric" data-fixed="transport_ins"></div>
+          <div class="snapshot-row">
+            <span class="snapshot-row-label">Car payment</span>
+            <select class="snapshot-row-freq-select" data-freq-for="transport_car">
+              <option value="monthly" selected>/ mo</option>
+              <option value="semimonthly">/ half-mo</option>
+              <option value="biweekly">/ 2 wks</option>
+              <option value="weekly">/ wk</option>
+              <option value="quarterly">/ qtr</option>
+            </select>
+            <input type="number" class="snapshot-row-input" placeholder="$0" min="0" inputmode="numeric" data-fixed="transport_car">
+          </div>
+          <div class="snapshot-row">
+            <span class="snapshot-row-label">Insurance</span>
+            <select class="snapshot-row-freq-select" data-freq-for="transport_ins">
+              <option value="monthly" selected>/ mo</option>
+              <option value="semimonthly">/ half-mo</option>
+              <option value="biweekly">/ 2 wks</option>
+              <option value="weekly">/ wk</option>
+              <option value="quarterly">/ qtr</option>
+            </select>
+            <input type="number" class="snapshot-row-input" placeholder="$0" min="0" inputmode="numeric" data-fixed="transport_ins">
+          </div>
         </div>
         <div class="snapshot-section">
           <div class="snapshot-section-title">Subscriptions & Services</div>
-          <div class="snapshot-row"><span class="snapshot-row-label">Phone</span><input type="number" class="snapshot-row-input" placeholder="$0" min="0" inputmode="numeric" data-fixed="sub_phone"></div>
-          <div class="snapshot-row"><span class="snapshot-row-label">Internet</span><input type="number" class="snapshot-row-input" placeholder="$0" min="0" inputmode="numeric" data-fixed="sub_internet"></div>
+          <div class="snapshot-row">
+            <span class="snapshot-row-label">Phone</span>
+            <select class="snapshot-row-freq-select" data-freq-for="sub_phone">
+              <option value="monthly" selected>/ mo</option>
+              <option value="semimonthly">/ half-mo</option>
+              <option value="biweekly">/ 2 wks</option>
+              <option value="weekly">/ wk</option>
+              <option value="quarterly">/ qtr</option>
+            </select>
+            <input type="number" class="snapshot-row-input" placeholder="$0" min="0" inputmode="numeric" data-fixed="sub_phone">
+          </div>
+          <div class="snapshot-row">
+            <span class="snapshot-row-label">Internet</span>
+            <select class="snapshot-row-freq-select" data-freq-for="sub_internet">
+              <option value="monthly" selected>/ mo</option>
+              <option value="semimonthly">/ half-mo</option>
+              <option value="biweekly">/ 2 wks</option>
+              <option value="weekly">/ wk</option>
+              <option value="quarterly">/ qtr</option>
+            </select>
+            <input type="number" class="snapshot-row-input" placeholder="$0" min="0" inputmode="numeric" data-fixed="sub_internet">
+          </div>
           <div id="extraFixed"></div>
           <button class="snapshot-add-btn" onclick="addFixedRow()" type="button"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg> Add another fixed bill</button>
         </div>
         <div class="snapshot-section">
           <div class="snapshot-section-title">Debt payments</div>
-          <div class="snapshot-row"><span class="snapshot-row-label">Student loans</span><input type="number" class="snapshot-row-input" placeholder="$0" min="0" inputmode="numeric" data-fixed="debt_student"></div>
-          <div class="snapshot-row"><span class="snapshot-row-label">Minimum credit card payments</span><input type="number" class="snapshot-row-input" placeholder="$0" min="0" inputmode="numeric" data-fixed="debt_cc"></div>
+          <div class="snapshot-row">
+            <span class="snapshot-row-label">Student loans</span>
+            <select class="snapshot-row-freq-select" data-freq-for="debt_student">
+              <option value="monthly" selected>/ mo</option>
+              <option value="semimonthly">/ half-mo</option>
+              <option value="biweekly">/ 2 wks</option>
+              <option value="weekly">/ wk</option>
+              <option value="quarterly">/ qtr</option>
+            </select>
+            <input type="number" class="snapshot-row-input" placeholder="$0" min="0" inputmode="numeric" data-fixed="debt_student">
+          </div>
+          <div class="snapshot-row">
+            <span class="snapshot-row-label">Minimum credit card payments</span>
+            <select class="snapshot-row-freq-select" data-freq-for="debt_cc">
+              <option value="monthly" selected>/ mo</option>
+              <option value="semimonthly">/ half-mo</option>
+              <option value="biweekly">/ 2 wks</option>
+              <option value="weekly">/ wk</option>
+              <option value="quarterly">/ qtr</option>
+            </select>
+            <input type="number" class="snapshot-row-input" placeholder="$0" min="0" inputmode="numeric" data-fixed="debt_cc">
+          </div>
         </div>
       </div>
       <div class="step-nav">
@@ -579,6 +756,7 @@ footer {
         <button class="btn-next" onclick="goTo(3)">Next: Variable spending <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
       </div>
     </section>
+
     <!-- STEP 3 — Variable Spending -->
     <section class="step-panel" id="step-3" aria-label="Variable spending">
       <div class="step-header">
@@ -610,6 +788,7 @@ footer {
         <button class="btn-next" onclick="goTo(4)">Next: Your picture <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
       </div>
     </section>
+
     <!-- STEP 4 — Priorities -->
     <section class="step-panel" id="step-4" aria-label="Priorities">
       <div class="step-header">
@@ -650,6 +829,7 @@ footer {
         <button class="btn-next" onclick="finishSetup()">See my snapshot →</button>
       </div>
     </section>
+
     <!-- DONE -->
     <div class="done-panel" id="step-done" aria-label="Setup complete">
       <div class="done-icon" aria-hidden="true">✓</div>
@@ -662,13 +842,21 @@ footer {
         <svg class="reassurance-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-top:2px;"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
         <div><p id="nextStepText">Your first accountability moment: <strong>at your next check-in, compare what you actually spent in one category against what you guessed here.</strong> Start with just one. That gap — whatever it is — is your most honest teacher.</p></div>
       </div>
-      <button class="btn-dashboard" onclick="window.location.href='index.html'">Open my finfolio <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
+      <div class="done-actions">
+        <!-- Goes to index.html dashboard, not back to the startup overlay -->
+        <a class="btn-dashboard" href="index.html#dashboard">
+          Open my finfolio
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+        <a class="btn-restart" href="intake.html">Start over with different numbers</a>
+      </div>
       <p style="font-size:var(--text-xs);color:var(--color-text-faint);">You can update any of this from Settings at any time.</p>
     </div>
   </main>
   <footer>finfolio &nbsp;·&nbsp; Your numbers. Your clarity.</footer>
 </div>
 <script>
+/* ── Theme toggle ── */
 (function(){
   const t = document.querySelector('[data-theme-toggle]');
   const r = document.documentElement;
@@ -684,6 +872,39 @@ footer {
   updateIcon();
   if(t) t.addEventListener('click',()=>{ d=d==='dark'?'light':'dark'; r.setAttribute('data-theme',d); updateIcon(); });
 })();
+
+/* ── Frequency → monthly multiplier ── */
+const FREQ_MULT = {
+  monthly:     1,
+  semimonthly: 2,
+  biweekly:    26/12,
+  weekly:      52/12,
+  quarterly:   1/3
+};
+function toMonthly(val, freq) { return (parseFloat(val) || 0) * (FREQ_MULT[freq] || 1); }
+function fmtEquiv(monthly) {
+  if (!monthly) return '';
+  return '≈ $' + Math.round(monthly).toLocaleString('en-US') + ' / mo';
+}
+
+/* Sync default freq selector on step-1 with the one chosen on step-0 */
+document.getElementById('payFrequency').addEventListener('change', function() {
+  document.getElementById('incomePrimaryFreq').value = this.value;
+  updateIncomeEquiv();
+});
+
+function updateIncomeEquiv() {
+  const val  = document.getElementById('incomePrimary').value;
+  const freq = document.getElementById('incomePrimaryFreq').value;
+  document.getElementById('incomePrimaryEquiv').textContent = fmtEquiv(toMonthly(val, freq));
+}
+function updateOtherEquiv() {
+  const val  = document.getElementById('incomeOther').value;
+  const freq = document.getElementById('incomeOtherFreq').value;
+  document.getElementById('incomeOtherEquiv').textContent = fmtEquiv(toMonthly(val, freq));
+}
+
+/* ── Step navigation ── */
 let current = 0;
 const totalSteps = 5;
 function goTo(n) {
@@ -701,6 +922,8 @@ function updateProgress() {
   });
   document.getElementById('progressLabel').textContent='Step '+(current+1)+' of '+totalSteps;
 }
+
+/* ── Checkbox / radio selection styles ── */
 document.addEventListener('change',function(e){
   const inp=e.target;
   if(inp.type==='checkbox'){
@@ -718,41 +941,78 @@ document.addEventListener('change',function(e){
     });
   }
 });
+
+/* ── Add extra fixed bill row ── */
 let extraCount=0;
 function addFixedRow(){
   extraCount++;
   const c=document.getElementById('extraFixed');
   const row=document.createElement('div');
   row.className='snapshot-row';
-  row.innerHTML=`<input type="text" class="snapshot-row-input" style="flex:1;text-align:left;width:auto;" placeholder="Bill name" maxlength="40"><input type="number" class="snapshot-row-input" placeholder="$0" min="0" inputmode="numeric" data-fixed="extra_${extraCount}">`;
+  row.innerHTML=
+    `<input type="text" class="snapshot-row-input" style="flex:1;text-align:left;width:auto;" placeholder="Bill name" maxlength="40">`+
+    `<select class="snapshot-row-freq-select" data-freq-for="extra_${extraCount}">`+
+      `<option value="monthly" selected>/ mo</option>`+
+      `<option value="semimonthly">/ half-mo</option>`+
+      `<option value="biweekly">/ 2 wks</option>`+
+      `<option value="weekly">/ wk</option>`+
+      `<option value="quarterly">/ qtr</option>`+
+    `</select>`+
+    `<input type="number" class="snapshot-row-input" placeholder="$0" min="0" inputmode="numeric" data-fixed="extra_${extraCount}">`;
   c.appendChild(row);
 }
-function getNum(sel){const el=document.querySelector(sel);return el?(parseFloat(el.value)||0):0;}
-function sumFixed(){let t=0;document.querySelectorAll('[data-fixed]').forEach(el=>{t+=parseFloat(el.value)||0;});return t;}
-function sumVar(){let t=0;document.querySelectorAll('[data-var]').forEach(el=>{t+=parseFloat(el.value)||0;});return t;}
-function fmt(n){return '$'+n.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0});}
+
+/* ── Helpers ── */
+function getNum(sel){ const el=document.querySelector(sel); return el?(parseFloat(el.value)||0):0; }
+function sumFixed(){
+  let t=0;
+  document.querySelectorAll('[data-fixed]').forEach(el=>{
+    const key=el.dataset.fixed;
+    const freqEl=document.querySelector(`[data-freq-for="${key}"]`);
+    const freq=freqEl?freqEl.value:'monthly';
+    t+=toMonthly(el.value, freq);
+  });
+  return t;
+}
+function sumVar(){ let t=0; document.querySelectorAll('[data-var]').forEach(el=>{t+=parseFloat(el.value)||0;}); return t; }
+function fmt(n){ return '$'+Math.round(n).toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0}); }
+
+/* ── Finish & show snapshot ── */
 function finishSetup(){
   const firstName=document.getElementById('firstName').value.trim();
-  const income1=getNum('#incomePrimary');
-  const income2=getNum('#incomeOther');
-  const totalIncome=income1+income2;
-  const fixedTotal=sumFixed();
-  const varTotal=sumVar();
-  const totalOut=fixedTotal+varTotal;
-  const net=totalIncome-totalOut;
+
+  const inc1Raw  = parseFloat(document.getElementById('incomePrimary').value)||0;
+  const inc1Freq = document.getElementById('incomePrimaryFreq').value;
+  const inc2Raw  = parseFloat(document.getElementById('incomeOther').value)||0;
+  const inc2Freq = document.getElementById('incomeOtherFreq').value;
+  const totalIncome = toMonthly(inc1Raw, inc1Freq) + toMonthly(inc2Raw, inc2Freq);
+
+  const fixedTotal = sumFixed();
+  const varTotal   = sumVar();
+  const totalOut   = fixedTotal + varTotal;
+  const net        = totalIncome - totalOut;
+
   document.getElementById('doneTitle').textContent=firstName?firstName+', here\'s your starting picture.':'Here\'s your starting picture.';
+
   const grid=document.getElementById('insightGrid');
   grid.innerHTML='';
-  [{label:'Monthly take-home',value:totalIncome>0?fmt(totalIncome):'—',cls:''},{label:'Fixed costs',value:fixedTotal>0?fmt(fixedTotal):'—',cls:''},{label:'Estimated variable',value:varTotal>0?fmt(varTotal):'—',cls:''},{label:'Estimated monthly net',value:totalIncome>0&&totalOut>0?fmt(net):'—',cls:totalIncome>0&&totalOut>0?(net>=0?'positive':'negative'):''}].forEach(c=>{
+  [
+    {label:'Monthly take-home',    value:totalIncome>0?fmt(totalIncome):'—',       cls:''},
+    {label:'Fixed costs / month',  value:fixedTotal>0?fmt(fixedTotal):'—',         cls:''},
+    {label:'Est. variable / month',value:varTotal>0?fmt(varTotal):'—',             cls:''},
+    {label:'Est. monthly net',     value:totalIncome>0&&totalOut>0?fmt(net):'—',   cls:totalIncome>0&&totalOut>0?(net>=0?'positive':'negative'):''}
+  ].forEach(c=>{
     const div=document.createElement('div');
     div.className='insight-card';
     div.innerHTML=`<span class="insight-card-label">${c.label}</span><span class="insight-card-value ${c.cls}">${c.value}</span>`;
     grid.appendChild(div);
   });
+
   const checkin=document.querySelector('[name="checkIn"]:checked');
   const freq=checkin?checkin.value:'weekly';
   const freqLabel={daily:'tomorrow',weekly:'this week',monthly:'this month'}[freq]||'soon';
   document.getElementById('nextStepText').innerHTML=`Your first accountability moment: <strong>check back ${freqLabel} and compare what you actually spent in one variable category against your estimate here.</strong> Start with just one. That gap — whatever it is — is your most honest teacher.`;
+
   document.getElementById('step-'+current).classList.remove('visible');
   document.getElementById('step-done').classList.add('visible');
   document.getElementById('progressRow').style.display='none';
