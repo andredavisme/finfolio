@@ -143,7 +143,6 @@
     .btn-secondary:hover { background: var(--color-surface-2); }
     .btn-danger { background: var(--color-error); color: white; }
     .btn-danger:hover { filter: brightness(1.1); }
-    /* Sample data banner shown when sample records exist */
     #sampleBanner {
       display: none;
       align-items: center;
@@ -306,7 +305,6 @@
       </div>
     </header>
     <section class="content">
-      <!-- Sample data banner (shown when sample records exist) -->
       <div id="sampleBanner">
         <span><strong>Sample data is loaded.</strong> You can add your own data on top, or clear the samples when you're ready.</span>
         <button id="clearSampleBtn">Clear sample data</button>
@@ -503,7 +501,6 @@
     const state = { transactions: [], notes: [], parsedRows: [] };
     let isDirty = false;
 
-    /* ── Sample data — every record tagged with sample:true for easy bulk removal ── */
     function makeSampleData() {
       return {
         transactions: [
@@ -573,6 +570,7 @@
       reader.readAsText(file);
     }
     function dismissStartup() { document.getElementById('startupOverlay').classList.add('hidden'); }
+
     function initStartup() {
       const loadBtn   = document.getElementById('startupLoadBtn');
       const sampleBtn = document.getElementById('startupSampleBtn');
@@ -588,13 +586,74 @@
       });
       freshBtn.addEventListener('click', () => { dismissStartup(); });
 
-      /* If arriving from intake.html via href="index.html#dashboard", skip the overlay */
+      /* If arriving from intake.html via href="index.html#dashboard", skip overlay and hydrate state */
       if (window.location.hash === '#dashboard') {
         dismissStartup();
+
+        try {
+          const raw = localStorage.getItem('finfolio_intake');
+          if (raw) {
+            const intake = JSON.parse(raw);
+            if (intake.fromIntake) {
+              const today = todayISO();
+              const entries = [];
+
+              if (intake.income && intake.income.monthlyTotal > 0)
+                entries.push({
+                  id: crypto.randomUUID(), date: today,
+                  amount: intake.income.monthlyTotal, category: 'Income',
+                  type: 'income', status: 'expected',
+                  tag: 'Intake estimate', description: 'Monthly take-home from intake setup'
+                });
+
+              (intake.fixed || []).forEach(row => {
+                entries.push({
+                  id: crypto.randomUUID(), date: today,
+                  amount: row.monthly,
+                  category: row.key.replace(/_/g, ' '),
+                  type: 'expense', status: 'expected',
+                  tag: 'Fixed — intake',
+                  description: 'Fixed cost: ' + row.key + ' (' + row.freq + ')'
+                });
+              });
+
+              (intake.variable || []).forEach(row => {
+                entries.push({
+                  id: crypto.randomUUID(), date: today,
+                  amount: row.monthly,
+                  category: row.key.replace(/_/g, ' '),
+                  type: 'expense', status: 'expected',
+                  tag: 'Variable — intake',
+                  description: 'Variable estimate: ' + row.key + ' (' + row.freq + ')'
+                });
+              });
+
+              state.transactions.push(...entries);
+
+              if (intake.profile && intake.profile.budgetGoal) {
+                state.notes.push({
+                  id: crypto.randomUUID(),
+                  title: 'Setup goal' + (intake.profile.firstName ? ' \u2014 ' + intake.profile.firstName : ''),
+                  tag: 'Intake',
+                  body: intake.profile.budgetGoal,
+                  createdAt: new Date().toISOString()
+                });
+              }
+
+              markDirty();
+              localStorage.removeItem('finfolio_intake');
+              showToast('\u2713 Intake data loaded \u2014 save your file to keep it.');
+            }
+          }
+        } catch(e) {
+          console.warn('Could not restore intake data:', e);
+        }
+
         switchView('dashboard');
         history.replaceState(null, '', window.location.pathname);
       }
     }
+
     window.addEventListener('beforeunload', e => {
       if (isDirty) { e.preventDefault(); e.returnValue = 'You have unsaved changes. Save your data before closing.'; }
     });
@@ -796,7 +855,6 @@
           status: document.getElementById('txStatus').value,
           tag: document.getElementById('txTag').value.trim(),
           description: document.getElementById('txDescription').value.trim()
-          /* no sample:true — user-entered records are never marked sample */
         });
         e.target.reset(); setDefaults(); markDirty(); renderAll();
       });
@@ -808,7 +866,6 @@
           tag: document.getElementById('noteTag').value.trim(),
           body: document.getElementById('noteBody').value.trim(),
           createdAt: new Date().toISOString()
-          /* no sample:true */
         });
         e.target.reset(); markDirty(); renderAll();
       });
@@ -860,7 +917,6 @@
       document.getElementById('fileInput').addEventListener('change', e => { if (e.target.files[0]) importData(e.target.files[0]); });
       document.getElementById('seedSampleBtn').addEventListener('click', () => {
         const sd = makeSampleData();
-        /* Merge: add sample records on top of any existing data */
         state.transactions.push(...sd.transactions);
         state.notes.push(...sd.notes);
         markDirty(); renderAll(); showToast('Sample data loaded \u2014 use \u201cClear sample data\u201d to remove it.');
