@@ -1,0 +1,20 @@
+{
+  "_note": "This is FinFolio sample data. Load it from the startup screen or Transactions view to explore the app before entering your own numbers. Delete it any time with the 'Clear sample data' button.",
+  "transactions": [
+    { "id": "sample-t1", "sample": true, "date": "2026-06-01", "amount": 2500,  "category": "Paycheck",       "type": "income",  "status": "actual",   "tag": "Salary",       "description": "Primary payroll deposit" },
+    { "id": "sample-t2", "sample": true, "date": "2026-06-02", "amount": 1200,  "category": "Rent",           "type": "expense", "status": "actual",   "tag": "Housing",      "description": "Monthly rent payment" },
+    { "id": "sample-t3", "sample": true, "date": "2026-06-03", "amount": 300,   "category": "Emergency Fund", "type": "goal",    "status": "expected", "tag": "Savings",      "description": "Planned emergency fund contribution" },
+    { "id": "sample-t4", "sample": true, "date": "2026-06-04", "amount": 420,   "category": "Freelance",      "type": "income",  "status": "expected", "tag": "Side income",  "description": "Expected project payment" },
+    { "id": "sample-t5", "sample": true, "date": "2026-06-05", "amount": 86.40, "category": "Groceries",      "type": "expense", "status": "actual",   "tag": "Food",         "description": "Weekly grocery run" },
+    { "id": "sample-t6", "sample": true, "date": "2026-06-06", "amount": 150,   "category": "Vacation",       "type": "goal",    "status": "expected", "tag": "Travel",       "description": "Save toward travel fund" },
+    { "id": "sample-t7", "sample": true, "date": "2026-06-07", "amount": 65,    "category": "Dining out",     "type": "expense", "status": "actual",   "tag": "Food",         "description": "Dinner with friends" },
+    { "id": "sample-t8", "sample": true, "date": "2026-06-08", "amount": 120,   "category": "Electric",       "type": "expense", "status": "actual",   "tag": "Utilities",    "description": "Monthly electric bill" },
+    { "id": "sample-t9", "sample": true, "date": "2026-06-09", "amount": 45,    "category": "Streaming",      "type": "expense", "status": "actual",   "tag": "Subscriptions","description": "Monthly subscriptions" },
+    { "id": "sample-t10","sample": true, "date": "2026-06-10", "amount": 500,   "category": "Car payment",    "type": "expense", "status": "actual",   "tag": "Transportation","description": "Monthly car payment" }
+  ],
+  "notes": [
+    { "id": "sample-n1", "sample": true, "title": "Emergency fund target",  "tag": "Savings",   "body": "Build three months of expenses before increasing discretionary spending. Current monthly expenses are roughly $2,166 — target is $6,500.", "createdAt": "2026-06-01T12:00:00.000Z" },
+    { "id": "sample-n2", "sample": true, "title": "Income stability note",  "tag": "Cash flow", "body": "Freelance payments vary month to month. Using conservative $420 estimate. If a month comes in higher, route the surplus to the emergency fund first.", "createdAt": "2026-06-02T12:00:00.000Z" },
+    { "id": "sample-n3", "sample": true, "title": "Vacation fund strategy", "tag": "Travel",    "body": "$150/month toward travel. Goal is $1,800 for a December trip. On track if saving starts in January.", "createdAt": "2026-06-03T12:00:00.000Z" }
+  ]
+}
