@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://api.fontshare.com" />
   <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&f[]=clash-display@600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
   <style>
     :root, [data-theme="light"] {
       --text-xs:   clamp(0.75rem,  0.7rem  + 0.25vw, 0.875rem);
@@ -144,30 +145,18 @@
     .btn-danger { background: var(--color-error); color: white; }
     .btn-danger:hover { filter: brightness(1.1); }
     #sampleBanner {
-      display: none;
-      align-items: center;
-      justify-content: space-between;
-      gap: var(--space-3);
+      display: none; align-items: center; justify-content: space-between; gap: var(--space-3);
       padding: var(--space-3) var(--space-5);
       background: color-mix(in srgb, var(--color-orange) 10%, var(--color-surface));
       border: 1px solid color-mix(in srgb, var(--color-orange) 25%, var(--color-border));
-      border-radius: var(--radius-lg);
-      font-size: var(--text-sm);
-      color: var(--color-orange);
+      border-radius: var(--radius-lg); font-size: var(--text-sm); color: var(--color-orange);
     }
     #sampleBanner.visible { display: flex; }
     #sampleBanner strong { color: var(--color-text); }
     #clearSampleBtn {
-      white-space: nowrap;
-      padding: var(--space-2) var(--space-4);
-      border-radius: var(--radius-full);
-      background: var(--color-orange);
-      color: #fff;
-      font-size: var(--text-xs);
-      font-weight: 600;
-      border: none;
-      cursor: pointer;
-      transition: filter var(--transition);
+      white-space: nowrap; padding: var(--space-2) var(--space-4); border-radius: var(--radius-full);
+      background: var(--color-orange); color: #fff; font-size: var(--text-xs); font-weight: 600;
+      border: none; cursor: pointer; transition: filter var(--transition);
     }
     #clearSampleBtn:hover { filter: brightness(1.12); }
     .pill-row { display: flex; flex-wrap: wrap; gap: var(--space-2); }
@@ -201,6 +190,11 @@
     .checklist { display: grid; gap: var(--space-3); }
     .checklist li { list-style: none; padding: var(--space-3) var(--space-4); border-radius: var(--radius-lg); background: var(--color-surface-offset); font-size: var(--text-sm); }
     .reality-box { padding: var(--space-5); border-radius: var(--radius-xl); background: color-mix(in srgb, var(--color-orange) 8%, var(--color-surface)); border: 1px solid color-mix(in srgb, var(--color-orange) 18%, var(--color-border)); display: grid; gap: var(--space-3); }
+    .share-box { padding: var(--space-5); border-radius: var(--radius-xl); background: color-mix(in srgb, var(--color-blue) 6%, var(--color-surface)); border: 1px solid color-mix(in srgb, var(--color-blue) 20%, var(--color-border)); display: grid; gap: var(--space-4); }
+    .share-box h4 { font-size: var(--text-base); font-weight: 700; }
+    .data-guide { display: grid; gap: var(--space-3); }
+    .data-guide-step { display: grid; gap: var(--space-1); padding: var(--space-3) var(--space-4); background: var(--color-surface-offset); border-radius: var(--radius-lg); font-size: var(--text-sm); }
+    .data-guide-step strong { font-weight: 700; }
     .mobile-nav { display: none; }
     .hidden { display: none !important; }
     #toast {
@@ -246,12 +240,12 @@
       </div>
       <div>
         <h2 id="startupTitle">Start where you are</h2>
-        <p>Budgeting works better when setup feels honest and simple. You can load a saved file, walk through a guided setup, explore sample data, or start with a blank slate.</p>
+        <p>Budgeting works better when setup feels honest and simple. Load a saved file, walk through guided setup, explore sample data, or start blank.</p>
       </div>
       <div class="startup-btns">
         <button class="btn btn-primary" id="startupLoadBtn">&#128194; Load my data (JSON)</button>
         <a class="btn btn-secondary" href="intake.html" style="display:flex;align-items:center;justify-content:center;min-height:44px;">&#10024; Guided setup — start fresh</a>
-        <button class="btn btn-secondary" id="startupSampleBtn">Load sample data</button>
+        <button class="btn btn-secondary" id="startupSampleBtn">&#128202; Load sample data</button>
         <button class="btn btn-secondary" id="startupFreshBtn">Start with a blank slate</button>
       </div>
       <p class="startup-hint">Your data never leaves your device. Save often with the Save button in the top bar.</p>
@@ -306,7 +300,7 @@
     </header>
     <section class="content">
       <div id="sampleBanner">
-        <span><strong>Sample data is loaded.</strong> You can add your own data on top, or clear the samples when you're ready.</span>
+        <span><strong>Sample data is loaded.</strong> Explore freely — clear it when you're ready to use your own numbers.</span>
         <button id="clearSampleBtn">Clear sample data</button>
       </div>
 
@@ -316,7 +310,7 @@
           <article class="setup-hero">
             <span class="pill" style="width: fit-content;">A simpler start</span>
             <h3>Start with facts, not a perfect system.</h3>
-            <p>Many people have tried apps, spreadsheets, and categories that never stuck. This intake page is meant to lower the pressure: begin with the few things you know for sure, then compare your budget to reality over time.</p>
+            <p>Many people have tried apps, spreadsheets, and categories that never stuck. Begin with the few things you know for sure, then compare your budget to reality over time.</p>
             <div class="btn-row">
               <a class="btn btn-primary" href="intake.html" style="display:inline-flex;align-items:center;">Walk me through setup</a>
               <button class="btn btn-secondary" id="setupLoadBtn">Load existing file</button>
@@ -327,7 +321,7 @@
             <p class="card-subtitle">You do not need a complete financial picture on day one.</p>
             <ul class="checklist">
               <li>Your main paycheck or other regular income.</li>
-              <li>The bills that absolutely happen, like rent, mortgage, utilities, insurance, or debt payments.</li>
+              <li>The bills that absolutely happen — rent, mortgage, utilities, insurance, or debt payments.</li>
               <li>The account balance or cash amount you can verify today.</li>
               <li>One savings goal or pressure point you care about most.</li>
             </ul>
@@ -401,7 +395,7 @@
         </div>
         <div class="grid two-col">
           <article class="card"><h3>Insights</h3><p class="card-subtitle">Auto-generated takeaways from your current data.</p><ul class="insight-list" id="insightsList"></ul></article>
-          <article class="card"><h3>Goal progress</h3><p class="card-subtitle">Amounts tagged as savings goals vs actual saved income.</p><div id="goalProgressList" class="grid"></div></article>
+          <article class="card"><h3>Goal progress</h3><p class="card-subtitle">Amounts tagged as savings goals.</p><div id="goalProgressList" class="grid"></div></article>
         </div>
       </section>
 
@@ -458,13 +452,35 @@
       <!-- ── Documents view ── -->
       <section class="view" id="documents-view">
         <div class="grid two-col">
+          <!-- CSV import -->
+          <article class="card">
+            <h3>Import CSV</h3>
+            <p class="card-subtitle">Upload a spreadsheet exported from your bank or filled out from the template below.</p>
+            <div class="upload-box" id="csvDropZone" style="cursor:pointer;" title="Click to choose a CSV file">
+              <strong>&#128196; Drop a CSV file here or click to browse</strong>
+              <p style="font-size:var(--text-sm);color:var(--color-text-muted);">Required columns: <code>date, amount, category, type, status</code>. Optional: <code>tag, description</code>.</p>
+              <input id="csvFileInput" type="file" accept=".csv,text/csv" class="hidden" />
+            </div>
+            <div class="btn-row" style="margin-top:var(--space-3);">
+              <button class="btn btn-secondary" id="downloadCsvTemplateBtn">&#11015; Download CSV template</button>
+              <button class="btn btn-primary" id="importCsvBtn" style="display:none;">Import <span id="csvRowCount">0</span> rows</button>
+            </div>
+            <div class="table-wrap" style="margin-top:var(--space-4);"><table><thead><tr><th>Date</th><th>Category</th><th>Type</th><th>Status</th><th>Amount</th></tr></thead><tbody id="csvPreviewBody"></tbody></table></div>
+          </article>
+          <!-- Text parser -->
           <article class="card">
             <h3>Document parser</h3>
-            <p class="card-subtitle">Paste statement text, receipts, or exported notes and extract likely finance entries.</p>
+            <p class="card-subtitle">Paste statement text, receipts, or exported notes to extract finance entries.</p>
             <div class="field"><label for="docText">Raw document text</label><textarea id="docText" placeholder="Example: 2026-06-01 Grocery Mart $84.22&#10;2026-06-03 Payroll Deposit $2500"></textarea></div>
             <div class="btn-row"><button class="btn btn-primary" id="parseDocBtn" type="button">Parse document</button><button class="btn btn-secondary" id="importParsedBtn" type="button">Import parsed rows</button></div>
+            <div style="margin-top:var(--space-4);">
+              <ul class="insight-list">
+                <li>Date formats: YYYY-MM-DD, MM/DD/YYYY.</li>
+                <li>Amounts: values like $84.22 or 1200.00.</li>
+                <li>Type inference: payroll, salary, deposit = income; goal/save/fund = goal; otherwise expense.</li>
+              </ul>
+            </div>
           </article>
-          <article class="card"><h3>Parser rules</h3><p class="card-subtitle">The parser looks for dates, dollar amounts, and descriptive text.</p><ul class="insight-list"><li>Date formats: YYYY-MM-DD, MM/DD/YYYY.</li><li>Amounts: values like $84.22 or 1200.00.</li><li>Type inference: payroll, salary, deposit = income; otherwise expense unless marked as goal.</li></ul></article>
         </div>
         <article class="card"><h3>Parsed rows</h3><p class="card-subtitle">Review extracted transactions before importing.</p><div class="table-wrap"><table><thead><tr><th>Date</th><th>Description</th><th>Amount</th><th>Type</th></tr></thead><tbody id="parsedTableBody"></tbody></table></div></article>
       </section>
@@ -481,8 +497,56 @@
               <button class="btn btn-primary" type="submit">Save note</button>
             </form>
           </article>
-          <article class="card"><h3>How to share</h3><p class="card-subtitle">No app store required.</p><ul class="insight-list"><li>Zip and share the HTML file directly.</li><li>Host on GitHub Pages, Netlify, Vercel, or Cloudflare Pages.</li><li>Install as a local desktop app with a wrapper later if needed.</li></ul></article>
+          <!-- Share & Get the App -->
+          <article class="card">
+            <h3>Share FinFolio</h3>
+            <p class="card-subtitle">No account, no app store, no subscription. Give it to anyone.</p>
+            <div class="share-box">
+              <div>
+                <h4>&#128640; Download the app</h4>
+                <p style="font-size:var(--text-sm);color:var(--color-text-muted);margin-top:var(--space-2);">Downloads a ZIP containing <code>index.html</code> and <code>intake.html</code>. Unzip it anywhere and open <code>index.html</code> in any browser — works fully offline.</p>
+                <button class="btn btn-primary" id="downloadAppBtn" style="margin-top:var(--space-3);width:100%;">&#11015; Download FinFolio (ZIP)</button>
+              </div>
+              <div>
+                <h4>&#128279; Share the live link</h4>
+                <div style="display:flex;gap:var(--space-2);margin-top:var(--space-2);">
+                  <input id="shareLinkInput" type="text" value="https://andredavisme.github.io/finfolio/" readonly style="flex:1;background:var(--color-surface-2);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:var(--space-2) var(--space-3);font-size:var(--text-sm);" />
+                  <button class="btn btn-secondary" id="copyLinkBtn" style="white-space:nowrap;">Copy link</button>
+                </div>
+                <p style="font-size:var(--text-xs);color:var(--color-text-muted);margin-top:var(--space-2);">Anyone who opens this link gets the full app. Their data stays on their own device — it never mixes with yours.</p>
+              </div>
+            </div>
+          </article>
         </div>
+
+        <!-- Data File Management Guide -->
+        <article class="card">
+          <h3>Managing your data file</h3>
+          <p class="card-subtitle">FinFolio saves everything to a single <code>finfolio-data.json</code> file that lives on your computer. Here is how to keep it safe and organised over time.</p>
+          <div class="data-guide">
+            <div class="data-guide-step">
+              <strong>&#128190; Save regularly</strong>
+              <p>The Save button in the top bar downloads a fresh copy of your data. A green dot appears when you have unsaved changes. Make it a habit: save before you close the tab.</p>
+            </div>
+            <div class="data-guide-step">
+              <strong>&#128193; Keep dated backup copies</strong>
+              <p>After saving, rename a copy with the date — for example <code>finfolio-data-2026-06.json</code>. Store backups in a cloud folder (iCloud, Google Drive, Dropbox) so you can roll back if something goes wrong. QuickBooks users will recognise this pattern: the working file plus versioned backups.</p>
+            </div>
+            <div class="data-guide-step">
+              <strong>&#128260; Restoring from backup</strong>
+              <p>Click <strong>Import JSON</strong> in the sidebar (or Load my data on the startup screen) and choose any previously saved file. Your data is reloaded instantly. Nothing is overwritten until you save again.</p>
+            </div>
+            <div class="data-guide-step">
+              <strong>&#128274; Your data never leaves your device</strong>
+              <p>FinFolio has no server, no account, and no sync. The JSON file is the whole database. Treat it the way you would treat an important document — back it up wherever you keep things you cannot afford to lose.</p>
+            </div>
+            <div class="data-guide-step">
+              <strong>&#128203; What is in the file</strong>
+              <p>The JSON file contains two arrays: <code>transactions</code> (every income, expense, and savings goal record) and <code>notes</code> (your written reflections and goals). It is plain text — you can open it in any text editor to read or audit it.</p>
+            </div>
+          </div>
+        </article>
+
         <div class="grid three-col" id="notesGrid"></div>
       </section>
 
@@ -498,9 +562,10 @@
   </nav>
   <div id="toast" role="status" aria-live="polite"></div>
   <script>
-    const state = { transactions: [], notes: [], parsedRows: [] };
+    const state = { transactions: [], notes: [], parsedRows: [], csvRows: [] };
     let isDirty = false;
 
+    /* ── Sample data ── */
     function makeSampleData() {
       return {
         transactions: [
@@ -509,7 +574,9 @@
           { id: crypto.randomUUID(), sample: true, date: '2026-06-03', amount: 300,   category: 'Emergency Fund', type: 'goal',    status: 'expected', tag: 'Savings',     description: 'Planned emergency fund contribution' },
           { id: crypto.randomUUID(), sample: true, date: '2026-06-04', amount: 420,   category: 'Freelance',      type: 'income',  status: 'expected', tag: 'Side income', description: 'Expected project payment' },
           { id: crypto.randomUUID(), sample: true, date: '2026-06-05', amount: 86.4,  category: 'Groceries',      type: 'expense', status: 'actual',   tag: 'Food',        description: 'Weekly grocery run' },
-          { id: crypto.randomUUID(), sample: true, date: '2026-06-06', amount: 150,   category: 'Vacation',       type: 'goal',    status: 'expected', tag: 'Travel',      description: 'Save toward travel fund' }
+          { id: crypto.randomUUID(), sample: true, date: '2026-06-06', amount: 150,   category: 'Vacation',       type: 'goal',    status: 'expected', tag: 'Travel',      description: 'Save toward travel fund' },
+          { id: crypto.randomUUID(), sample: true, date: '2026-06-07', amount: 65,    category: 'Dining out',     type: 'expense', status: 'actual',   tag: 'Food',        description: 'Dinner with friends' },
+          { id: crypto.randomUUID(), sample: true, date: '2026-06-08', amount: 120,   category: 'Electric',       type: 'expense', status: 'actual',   tag: 'Utilities',   description: 'Monthly electric bill' }
         ],
         notes: [
           { id: crypto.randomUUID(), sample: true, title: 'Emergency fund target', tag: 'Savings',   body: 'Build three months of expenses before increasing discretionary spending.', createdAt: new Date().toISOString() },
@@ -518,17 +585,14 @@
       };
     }
 
-    function hasSampleData() {
-      return state.transactions.some(t => t.sample) || state.notes.some(n => n.sample);
-    }
+    function hasSampleData() { return state.transactions.some(t => t.sample) || state.notes.some(n => n.sample); }
     function clearSampleData() {
-      const txRemoved   = state.transactions.filter(t => t.sample).length;
-      const noteRemoved = state.notes.filter(n => n.sample).length;
+      const txR = state.transactions.filter(t => t.sample).length;
+      const nR  = state.notes.filter(n => n.sample).length;
       state.transactions = state.transactions.filter(t => !t.sample);
       state.notes        = state.notes.filter(n => !n.sample);
       markDirty(); renderAll();
-      showToast('\u2713 Removed ' + txRemoved + ' sample transaction' + (txRemoved !== 1 ? 's' : '') +
-        ' and ' + noteRemoved + ' sample note' + (noteRemoved !== 1 ? 's' : '') + '.');
+      showToast('\u2713 Removed ' + txR + ' sample transaction' + (txR !== 1 ? 's' : '') + ' and ' + nR + ' sample note' + (nR !== 1 ? 's' : '') + '.');
     }
     function updateSampleBanner() {
       const has = hasSampleData();
@@ -542,8 +606,8 @@
       dashboard:    ['Dashboard',    'Track goals, budgets, expected cash flow, and actual results.'],
       transactions: ['Transactions', 'Record planned and actual financial events.'],
       planner:      ['Planner',      'Compare budget assumptions against real-world outcomes.'],
-      documents:    ['Documents',    'Parse raw financial text into candidate transactions.'],
-      notes:        ['Notes',        'Capture the why behind financial decisions and goals.']
+      documents:    ['Documents',    'Import a CSV or paste raw text to extract transactions.'],
+      notes:        ['Notes',        'Capture the why behind financial decisions — and manage your data file.']
     };
     const currency  = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
     const shortDate = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
@@ -552,6 +616,7 @@
     function markClean() { isDirty = false; const btn = document.getElementById('saveBtn'); btn.classList.remove('dirty'); btn.classList.add('clean'); }
     let toastTimer;
     function showToast(msg) { const el = document.getElementById('toast'); el.textContent = msg; el.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('show'), 2800); }
+
     function exportData() {
       const blob = new Blob([JSON.stringify({ transactions: state.transactions, notes: state.notes }, null, 2)], { type: 'application/json' });
       const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'finfolio-data.json'; a.click(); URL.revokeObjectURL(a.href); markClean(); showToast('\u2713 Data saved to finfolio-data.json');
@@ -571,6 +636,77 @@
     }
     function dismissStartup() { document.getElementById('startupOverlay').classList.add('hidden'); }
 
+    /* ── ZIP app download ── */
+    function downloadApp() {
+      if (typeof JSZip === 'undefined') { showToast('JSZip not loaded — check your connection and try again.'); return; }
+      showToast('Building ZIP\u2026');
+      Promise.all([
+        fetch('index.html').then(r => r.text()),
+        fetch('intake.html').then(r => r.text())
+      ]).then(([idx, intake]) => {
+        const zip = new JSZip();
+        const folder = zip.folder('finfolio');
+        folder.file('index.html', idx);
+        folder.file('intake.html', intake);
+        folder.file('README.txt',
+          'FinFolio — Personal Financial Portfolio\n' +
+          '========================================\n\n' +
+          'To run locally:\n' +
+          '  1. Unzip this folder anywhere on your computer.\n' +
+          '  2. Open index.html in any modern browser (Chrome, Firefox, Edge, Safari).\n' +
+          '  3. No internet connection, server, or account required.\n\n' +
+          'Saving your data:\n' +
+          '  - Click the Save button to download finfolio-data.json.\n' +
+          '  - Keep this file somewhere safe — it is your entire database.\n' +
+          '  - Load it back with Import JSON or the startup screen.\n\n' +
+          'Live version: https://andredavisme.github.io/finfolio/\n'
+        );
+        return zip.generateAsync({ type: 'blob' });
+      }).then(blob => {
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'finfolio.zip'; a.click(); URL.revokeObjectURL(a.href);
+        showToast('\u2713 finfolio.zip downloaded');
+      }).catch(() => showToast('Could not build ZIP — try downloading the files directly from GitHub.'));
+    }
+
+    /* ── CSV import ── */
+    const CSV_TEMPLATE = 'date,amount,category,type,status,tag,description\n' +
+      '2026-06-01,2500,Paycheck,income,actual,Salary,Primary payroll deposit\n' +
+      '2026-06-02,1200,Rent,expense,actual,Housing,Monthly rent payment\n' +
+      '2026-06-03,300,Emergency Fund,goal,expected,Savings,Monthly savings target\n';
+
+    function parseCSV(text) {
+      const lines = text.trim().split(/\r?\n/);
+      if (lines.length < 2) return [];
+      const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+      const idx = k => headers.indexOf(k);
+      return lines.slice(1).reduce((rows, line) => {
+        const cols = line.match(/("(?:[^"]|"")*"|[^,]*)/g).map(c => c.replace(/^"|"$/g, '').replace(/""/g, '"').trim());
+        const date = cols[idx('date')] || '';
+        const amount = parseFloat(cols[idx('amount')]) || 0;
+        const category = cols[idx('category')] || 'Imported';
+        const type = (['income','expense','goal'].includes(cols[idx('type')])) ? cols[idx('type')] : 'expense';
+        const status = (['actual','expected'].includes(cols[idx('status')])) ? cols[idx('status')] : 'actual';
+        const tag = idx('tag') >= 0 ? (cols[idx('tag')] || '') : '';
+        const description = idx('description') >= 0 ? (cols[idx('description')] || '') : '';
+        if (date && amount) rows.push({ date, amount, category, type, status, tag, description });
+        return rows;
+      }, []);
+    }
+
+    function renderCsvPreview(rows) {
+      state.csvRows = rows;
+      const tbody = document.getElementById('csvPreviewBody');
+      const importBtn = document.getElementById('importCsvBtn');
+      const countEl  = document.getElementById('csvRowCount');
+      if (!rows.length) { tbody.innerHTML = '<tr><td colspan="5"><div class="empty">No valid rows found. Check the column headers match the template.</div></td></tr>'; importBtn.style.display = 'none'; return; }
+      tbody.innerHTML = rows.slice(0, 10).map(r =>
+        '<tr><td>'+r.date+'</td><td>'+r.category+'</td><td>'+r.type+'</td><td>'+r.status+'</td><td>'+currency.format(r.amount)+'</td></tr>'
+      ).join('') + (rows.length > 10 ? '<tr><td colspan="5" style="color:var(--color-text-muted);font-size:var(--text-xs);">…and '+(rows.length-10)+' more rows</td></tr>' : '');
+      countEl.textContent = rows.length;
+      importBtn.style.display = '';
+    }
+
+    /* ── Startup ── */
     function initStartup() {
       const loadBtn   = document.getElementById('startupLoadBtn');
       const sampleBtn = document.getElementById('startupSampleBtn');
@@ -586,77 +722,31 @@
       });
       freshBtn.addEventListener('click', () => { dismissStartup(); });
 
-      /* If arriving from intake.html via href="index.html#dashboard", skip overlay and hydrate state */
       if (window.location.hash === '#dashboard') {
         dismissStartup();
-
         try {
           const raw = localStorage.getItem('finfolio_intake');
           if (raw) {
             const intake = JSON.parse(raw);
             if (intake.fromIntake) {
-              const today = todayISO();
-              const entries = [];
-
+              const today = todayISO(); const entries = [];
               if (intake.income && intake.income.monthlyTotal > 0)
-                entries.push({
-                  id: crypto.randomUUID(), date: today,
-                  amount: intake.income.monthlyTotal, category: 'Income',
-                  type: 'income', status: 'expected',
-                  tag: 'Intake estimate', description: 'Monthly take-home from intake setup'
-                });
-
-              (intake.fixed || []).forEach(row => {
-                entries.push({
-                  id: crypto.randomUUID(), date: today,
-                  amount: row.monthly,
-                  category: row.key.replace(/_/g, ' '),
-                  type: 'expense', status: 'expected',
-                  tag: 'Fixed — intake',
-                  description: 'Fixed cost: ' + row.key + ' (' + row.freq + ')'
-                });
-              });
-
-              (intake.variable || []).forEach(row => {
-                entries.push({
-                  id: crypto.randomUUID(), date: today,
-                  amount: row.monthly,
-                  category: row.key.replace(/_/g, ' '),
-                  type: 'expense', status: 'expected',
-                  tag: 'Variable — intake',
-                  description: 'Variable estimate: ' + row.key + ' (' + row.freq + ')'
-                });
-              });
-
+                entries.push({ id: crypto.randomUUID(), date: today, amount: intake.income.monthlyTotal, category: 'Income', type: 'income', status: 'expected', tag: 'Intake estimate', description: 'Monthly take-home from intake setup' });
+              (intake.fixed || []).forEach(row => entries.push({ id: crypto.randomUUID(), date: today, amount: row.monthly, category: row.key.replace(/_/g, ' '), type: 'expense', status: 'expected', tag: 'Fixed \u2014 intake', description: 'Fixed cost: ' + row.key + ' (' + row.freq + ')' }));
+              (intake.variable || []).forEach(row => entries.push({ id: crypto.randomUUID(), date: today, amount: row.monthly, category: row.key.replace(/_/g, ' '), type: 'expense', status: 'expected', tag: 'Variable \u2014 intake', description: 'Variable estimate: ' + row.key + ' (' + row.freq + ')' }));
               state.transactions.push(...entries);
-
-              if (intake.profile && intake.profile.budgetGoal) {
-                state.notes.push({
-                  id: crypto.randomUUID(),
-                  title: 'Setup goal' + (intake.profile.firstName ? ' \u2014 ' + intake.profile.firstName : ''),
-                  tag: 'Intake',
-                  body: intake.profile.budgetGoal,
-                  createdAt: new Date().toISOString()
-                });
-              }
-
-              markDirty();
-              localStorage.removeItem('finfolio_intake');
-              showToast('\u2713 Intake data loaded \u2014 save your file to keep it.');
+              if (intake.profile && intake.profile.budgetGoal)
+                state.notes.push({ id: crypto.randomUUID(), title: 'Setup goal' + (intake.profile.firstName ? ' \u2014 ' + intake.profile.firstName : ''), tag: 'Intake', body: intake.profile.budgetGoal, createdAt: new Date().toISOString() });
+              markDirty(); localStorage.removeItem('finfolio_intake'); showToast('\u2713 Intake data loaded \u2014 save your file to keep it.');
             }
           }
-        } catch(e) {
-          console.warn('Could not restore intake data:', e);
-        }
-
+        } catch(e) { console.warn('Could not restore intake data:', e); }
         switchView('dashboard');
         history.replaceState(null, '', window.location.pathname);
       }
     }
 
-    window.addEventListener('beforeunload', e => {
-      if (isDirty) { e.preventDefault(); e.returnValue = 'You have unsaved changes. Save your data before closing.'; }
-    });
+    window.addEventListener('beforeunload', e => { if (isDirty) { e.preventDefault(); e.returnValue = 'You have unsaved changes. Save your data before closing.'; } });
     function todayISO() { return new Date().toISOString().split('T')[0]; }
     function setDefaults() { document.getElementById('txDate').value = todayISO(); }
     function switchView(view) {
@@ -698,10 +788,7 @@
     }
     function goalGroups() {
       const goals = {};
-      state.transactions.filter(t=>t.type==='goal').forEach(t => {
-        const key = t.tag || t.category;
-        goals[key] = (goals[key]||0) + t.amount;
-      });
+      state.transactions.filter(t=>t.type==='goal').forEach(t => { const key = t.tag || t.category; goals[key] = (goals[key]||0) + t.amount; });
       return goals;
     }
     function generateInsights(summary) {
@@ -710,16 +797,10 @@
         'Net actual cash flow is ' + currency.format(summary.netActual) + '.',
         'Actual expenses are ' + currency.format(summary.actualExpense) + ' against expected expenses of ' + currency.format(summary.expectedExpense) + '.',
         'Savings goals total ' + currency.format(summary.goalTotal) + ' across ' + Object.keys(goalGroups()).length + ' tracked targets.',
-        summary.savingsRate > 20
-          ? 'Savings rate is ' + summary.savingsRate.toFixed(1) + '%, which is a strong cushion.'
-          : 'Savings rate is ' + summary.savingsRate.toFixed(1) + '%; increasing income or reducing discretionary expense could improve resilience.'
+        summary.savingsRate > 20 ? 'Savings rate is ' + summary.savingsRate.toFixed(1) + '%, which is a strong cushion.' : 'Savings rate is ' + summary.savingsRate.toFixed(1) + '%; increasing income or reducing discretionary expense could improve resilience.'
       ];
       const variance = summary.actualExpense - summary.expectedExpense;
-      if (Math.abs(variance) > 50) {
-        insights.push(variance > 0
-          ? 'Actual spending exceeded estimates by ' + currency.format(variance) + '. Checking your plan against actuals can show where habits need support.'
-          : 'Actual spending came in ' + currency.format(Math.abs(variance)) + ' under estimates. Checking your plan against actuals can show where habits need support.');
-      }
+      if (Math.abs(variance) > 50) insights.push(variance > 0 ? 'Actual spending exceeded estimates by ' + currency.format(variance) + '.' : 'Actual spending came in ' + currency.format(Math.abs(variance)) + ' under estimates.');
       return insights;
     }
     function renderDashboard() {
@@ -738,12 +819,9 @@
         '</article>'
       ).join('');
       document.getElementById('insightsList').innerHTML = generateInsights(summary).map(i=>'<li>'+i+'</li>').join('');
-      const goals = goalGroups();
-      const goalEntries = Object.entries(goals);
+      const goals = goalGroups(); const goalEntries = Object.entries(goals);
       document.getElementById('goalProgressList').innerHTML = goalEntries.length
-        ? goalEntries.map(([name, value]) =>
-            '<div class="card" style="padding:1rem;"><div class="kpi-label">'+name+'</div><div class="kpi-value">'+currency.format(value)+'</div></div>'
-          ).join('')
+        ? goalEntries.map(([name, value]) => '<div class="card" style="padding:1rem;"><div class="kpi-label">'+name+'</div><div class="kpi-value">'+currency.format(value)+'</div></div>').join('')
         : '<div class="empty">No savings goals recorded yet.</div>';
       const monthly = groupMonthlyNet();
       const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim();
@@ -757,46 +835,31 @@
       if (budgetChart) budgetChart.destroy();
       budgetChart = new Chart(document.getElementById('budgetChart'), {
         type: 'bar',
-        data: {
-          labels: budgetRows.map(([cat])=>cat),
-          datasets: [
-            { label:'Expected', data:budgetRows.map(([,v])=>v.expected), backgroundColor:'rgba(218,113,1,0.55)' },
-            { label:'Actual',   data:budgetRows.map(([,v])=>v.actual),   backgroundColor:'rgba(1,105,111,0.75)' }
-          ]
-        },
+        data: { labels: budgetRows.map(([cat])=>cat), datasets: [ { label:'Expected', data:budgetRows.map(([,v])=>v.expected), backgroundColor:'rgba(218,113,1,0.55)' }, { label:'Actual', data:budgetRows.map(([,v])=>v.actual), backgroundColor:'rgba(1,105,111,0.75)' } ] },
         options: { responsive:true, plugins:{legend:{position:'bottom'}}, scales:{y:{ticks:{callback:v=>currency.format(v)}}} }
       });
     }
     function renderTransactions() {
       const tbody = document.getElementById('transactionTableBody');
-      if (!state.transactions.length) {
-        tbody.innerHTML = '<tr><td colspan="8"><div class="empty">No transactions yet. Add one above or load sample data.</div></td></tr>';
-      } else {
-        tbody.innerHTML = [...state.transactions].sort((a,b)=>b.date.localeCompare(a.date)).map(t =>
-          '<tr>' +
-          '<td>'+shortDate.format(new Date(t.date+'T12:00:00'))+'</td>' +
-          '<td>'+t.category+(t.sample?'<span class="badge-sample">sample</span>':'')+'</td>' +
-          '<td><span class="status-badge '+(t.type==='income'?'badge-income':t.type==='expense'?'badge-expense':'badge-plan')+'">'+t.type+'</span></td>' +
-          '<td>'+t.status+'</td>' +
-          '<td>'+currency.format(t.amount)+'</td>' +
-          '<td>'+(t.tag||'\u2014')+'</td>' +
-          '<td>'+(t.description||'\u2014')+'</td>' +
-          '<td><button class="btn btn-secondary delete-tx" data-id="'+t.id+'" style="padding:0.25rem 0.75rem;min-height:36px;">Delete</button></td>' +
-          '</tr>'
-        ).join('');
-      }
-      tbody.querySelectorAll('.delete-tx').forEach(btn => btn.addEventListener('click', () => {
-        state.transactions = state.transactions.filter(t => t.id !== btn.dataset.id);
-        markDirty(); renderAll();
-      }));
+      if (!state.transactions.length) { tbody.innerHTML = '<tr><td colspan="8"><div class="empty">No transactions yet. Add one above or load sample data.</div></td></tr>'; return; }
+      tbody.innerHTML = [...state.transactions].sort((a,b)=>b.date.localeCompare(a.date)).map(t =>
+        '<tr>' +
+        '<td>'+shortDate.format(new Date(t.date+'T12:00:00'))+'</td>' +
+        '<td>'+t.category+(t.sample?'<span class="badge-sample">sample</span>':'')+'</td>' +
+        '<td><span class="status-badge '+(t.type==='income'?'badge-income':t.type==='expense'?'badge-expense':'badge-plan')+'">'+t.type+'</span></td>' +
+        '<td>'+t.status+'</td>' +
+        '<td>'+currency.format(t.amount)+'</td>' +
+        '<td>'+(t.tag||'\u2014')+'</td>' +
+        '<td>'+(t.description||'\u2014')+'</td>' +
+        '<td><button class="btn btn-secondary delete-tx" data-id="'+t.id+'" style="padding:0.25rem 0.75rem;min-height:36px;">Delete</button></td>' +
+        '</tr>'
+      ).join('');
+      tbody.querySelectorAll('.delete-tx').forEach(btn => btn.addEventListener('click', () => { state.transactions = state.transactions.filter(t => t.id !== btn.dataset.id); markDirty(); renderAll(); }));
     }
     function renderPlanner() {
       const rows = categoryBudgetRows();
       document.getElementById('plannerTableBody').innerHTML = rows.length
-        ? rows.map(([category, values]) => {
-            const variance = values.actual - values.expected;
-            return '<tr><td>'+category+'</td><td>'+currency.format(values.expected)+'</td><td>'+currency.format(values.actual)+'</td><td class="'+amountClass(-variance)+'">'+currency.format(variance)+'</td></tr>';
-          }).join('')
+        ? rows.map(([category, values]) => { const variance = values.actual - values.expected; return '<tr><td>'+category+'</td><td>'+currency.format(values.expected)+'</td><td>'+currency.format(values.actual)+'</td><td class="'+amountClass(-variance)+'">'+currency.format(variance)+'</td></tr>'; }).join('')
         : '<tr><td colspan="4"><div class="empty">No planner data yet.</div></td></tr>';
       const summary = summarize();
       document.getElementById('plannerSummary').innerHTML = [
@@ -843,117 +906,98 @@
       document.getElementById('goalCountPill').textContent   = Object.keys(goalGroups()).length + ' goals';
     }
     function renderAll() { renderCounts(); renderDashboard(); renderTransactions(); renderPlanner(); renderParsedRows(); renderNotes(); updateSampleBanner(); }
+
     function bindForms() {
       document.getElementById('transactionForm').addEventListener('submit', e => {
         e.preventDefault();
-        state.transactions.push({
-          id: crypto.randomUUID(),
-          date: document.getElementById('txDate').value,
-          amount: Number(document.getElementById('txAmount').value),
-          category: document.getElementById('txCategory').value.trim(),
-          type: document.getElementById('txType').value,
-          status: document.getElementById('txStatus').value,
-          tag: document.getElementById('txTag').value.trim(),
-          description: document.getElementById('txDescription').value.trim()
-        });
+        state.transactions.push({ id: crypto.randomUUID(), date: document.getElementById('txDate').value, amount: Number(document.getElementById('txAmount').value), category: document.getElementById('txCategory').value.trim(), type: document.getElementById('txType').value, status: document.getElementById('txStatus').value, tag: document.getElementById('txTag').value.trim(), description: document.getElementById('txDescription').value.trim() });
         e.target.reset(); setDefaults(); markDirty(); renderAll();
       });
       document.getElementById('noteForm').addEventListener('submit', e => {
         e.preventDefault();
-        state.notes.push({
-          id: crypto.randomUUID(),
-          title: document.getElementById('noteTitle').value.trim(),
-          tag: document.getElementById('noteTag').value.trim(),
-          body: document.getElementById('noteBody').value.trim(),
-          createdAt: new Date().toISOString()
-        });
+        state.notes.push({ id: crypto.randomUUID(), title: document.getElementById('noteTitle').value.trim(), tag: document.getElementById('noteTag').value.trim(), body: document.getElementById('noteBody').value.trim(), createdAt: new Date().toISOString() });
         e.target.reset(); markDirty(); renderAll();
       });
       document.getElementById('setupForm').addEventListener('submit', e => {
         e.preventDefault();
-        const income   = Number(document.getElementById('setupIncome').value)    || 0;
-        const housing  = Number(document.getElementById('setupHousing').value)   || 0;
-        const utils    = Number(document.getElementById('setupUtilities').value)  || 0;
-        const debt     = Number(document.getElementById('setupDebt').value)       || 0;
-        const cash     = Number(document.getElementById('setupCash').value)       || 0;
-        const goalAmt  = Number(document.getElementById('setupGoalAmount').value) || 0;
-        const goalName = document.getElementById('setupGoalName').value.trim()    || 'Savings goal';
-        const stress   = document.getElementById('setupStress').value;
-        const note     = document.getElementById('setupNote').value.trim();
-        const today    = todayISO();
-        const entries  = [];
-        if (income  > 0) entries.push({ id:crypto.randomUUID(), date:today, amount:income,  category:'Income',       type:'income',  status:'expected', tag:'Setup estimate',   description:'Monthly take-home income estimate' });
-        if (housing > 0) entries.push({ id:crypto.randomUUID(), date:today, amount:housing, category:'Housing',      type:'expense', status:'expected', tag:'Setup estimate',   description:'Housing payment' });
-        if (utils   > 0) entries.push({ id:crypto.randomUUID(), date:today, amount:utils,   category:'Utilities',    type:'expense', status:'expected', tag:'Setup estimate',   description:'Utilities and essentials' });
-        if (debt    > 0) entries.push({ id:crypto.randomUUID(), date:today, amount:debt,    category:'Debt',         type:'expense', status:'expected', tag:'Setup estimate',   description:'Minimum debt payments' });
-        if (goalAmt > 0) entries.push({ id:crypto.randomUUID(), date:today, amount:goalAmt, category:goalName,       type:'goal',    status:'expected', tag:'Setup goal',       description:'Monthly savings target from setup' });
+        const income = Number(document.getElementById('setupIncome').value)||0, housing = Number(document.getElementById('setupHousing').value)||0, utils = Number(document.getElementById('setupUtilities').value)||0, debt = Number(document.getElementById('setupDebt').value)||0, cash = Number(document.getElementById('setupCash').value)||0, goalAmt = Number(document.getElementById('setupGoalAmount').value)||0;
+        const goalName = document.getElementById('setupGoalName').value.trim()||'Savings goal', stress = document.getElementById('setupStress').value, note = document.getElementById('setupNote').value.trim(), today = todayISO(), entries = [];
+        if (income  > 0) entries.push({ id:crypto.randomUUID(), date:today, amount:income,  category:'Income',       type:'income',  status:'expected', tag:'Setup estimate', description:'Monthly take-home income estimate' });
+        if (housing > 0) entries.push({ id:crypto.randomUUID(), date:today, amount:housing, category:'Housing',      type:'expense', status:'expected', tag:'Setup estimate', description:'Housing payment' });
+        if (utils   > 0) entries.push({ id:crypto.randomUUID(), date:today, amount:utils,   category:'Utilities',    type:'expense', status:'expected', tag:'Setup estimate', description:'Utilities and essentials' });
+        if (debt    > 0) entries.push({ id:crypto.randomUUID(), date:today, amount:debt,    category:'Debt',         type:'expense', status:'expected', tag:'Setup estimate', description:'Minimum debt payments' });
+        if (goalAmt > 0) entries.push({ id:crypto.randomUUID(), date:today, amount:goalAmt, category:goalName,       type:'goal',    status:'expected', tag:'Setup goal',     description:'Monthly savings target from setup' });
         if (cash    > 0) entries.push({ id:crypto.randomUUID(), date:today, amount:cash,    category:'Cash balance', type:'income',  status:'actual',   tag:'Starting balance', description:'Cash or checking balance at setup' });
         state.transactions.push(...entries);
-        if (note || stress) {
-          state.notes.push({
-            id: crypto.randomUUID(),
-            title: stress ? 'Setup context: ' + stress : 'Setup notes',
-            tag: 'Setup',
-            body: [stress ? 'Primary stress area: ' + stress : '', note].filter(Boolean).join('\n\n'),
-            createdAt: new Date().toISOString()
-          });
-        }
-        markDirty(); renderAll();
-        showToast('\u2713 Starting budget created \u2014 ' + entries.length + ' entries added.');
-        switchView('dashboard');
+        if (note || stress) state.notes.push({ id:crypto.randomUUID(), title: stress ? 'Setup context: '+stress : 'Setup notes', tag:'Setup', body:[stress?'Primary stress area: '+stress:'',note].filter(Boolean).join('\n\n'), createdAt:new Date().toISOString() });
+        markDirty(); renderAll(); showToast('\u2713 Starting budget created \u2014 '+entries.length+' entries added.'); switchView('dashboard');
       });
       document.getElementById('setupClearBtn').addEventListener('click', () => { document.getElementById('setupForm').reset(); });
       document.getElementById('setupLoadBtn').addEventListener('click', () => { document.getElementById('fileInput').click(); });
     }
+
     function bindButtons() {
-      document.getElementById('themeToggle').addEventListener('click', () => {
-        const root = document.documentElement;
-        root.setAttribute('data-theme', root.getAttribute('data-theme')==='dark'?'light':'dark');
-        renderDashboard();
-      });
+      document.getElementById('themeToggle').addEventListener('click', () => { const root = document.documentElement; root.setAttribute('data-theme', root.getAttribute('data-theme')==='dark'?'light':'dark'); renderDashboard(); });
       document.getElementById('saveBtn').addEventListener('click', exportData);
       document.getElementById('exportBtn').addEventListener('click', exportData);
       document.getElementById('importBtn').addEventListener('click', () => document.getElementById('fileInput').click());
       document.getElementById('fileInput').addEventListener('change', e => { if (e.target.files[0]) importData(e.target.files[0]); });
       document.getElementById('seedSampleBtn').addEventListener('click', () => {
-        const sd = makeSampleData();
-        state.transactions.push(...sd.transactions);
-        state.notes.push(...sd.notes);
+        const sd = makeSampleData(); state.transactions.push(...sd.transactions); state.notes.push(...sd.notes);
         markDirty(); renderAll(); showToast('Sample data loaded \u2014 use \u201cClear sample data\u201d to remove it.');
       });
       document.getElementById('clearSampleBtn').addEventListener('click', clearSampleData);
       document.getElementById('clearSampleTxBtn').addEventListener('click', clearSampleData);
       document.querySelectorAll('.quick-add').forEach(btn => btn.addEventListener('click', () => {
-        document.getElementById('txDate').value     = todayISO();
-        document.getElementById('txAmount').value   = btn.dataset.amount;
-        document.getElementById('txCategory').value = btn.dataset.category;
-        document.getElementById('txType').value     = btn.dataset.type;
-        document.getElementById('txStatus').value   = 'actual';
-        switchView('transactions');
+        document.getElementById('txDate').value = todayISO(); document.getElementById('txAmount').value = btn.dataset.amount;
+        document.getElementById('txCategory').value = btn.dataset.category; document.getElementById('txType').value = btn.dataset.type;
+        document.getElementById('txStatus').value = 'actual'; switchView('transactions');
       }));
-      document.getElementById('parseDocBtn').addEventListener('click', () => {
-        const text = document.getElementById('docText').value.trim();
-        if (!text) return;
-        state.parsedRows = parseDocument(text); renderParsedRows();
-      });
+      document.getElementById('parseDocBtn').addEventListener('click', () => { const text = document.getElementById('docText').value.trim(); if (!text) return; state.parsedRows = parseDocument(text); renderParsedRows(); });
       document.getElementById('importParsedBtn').addEventListener('click', () => {
         if (!state.parsedRows.length) return;
-        state.parsedRows.forEach(r => state.transactions.push({
-          id: crypto.randomUUID(), date:r.date, amount:r.amount, category:r.description,
-          type:r.type, status:'actual', tag:'', description:'Imported via document parser'
-        }));
-        state.parsedRows = [];
+        state.parsedRows.forEach(r => state.transactions.push({ id:crypto.randomUUID(), date:r.date, amount:r.amount, category:r.description, type:r.type, status:'actual', tag:'', description:'Imported via document parser' }));
+        state.parsedRows = []; markDirty(); renderAll(); switchView('transactions');
+      });
+
+      /* CSV import */
+      const csvInput = document.getElementById('csvFileInput');
+      const dropZone = document.getElementById('csvDropZone');
+      dropZone.addEventListener('click', () => csvInput.click());
+      dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.style.borderColor = 'var(--color-primary)'; });
+      dropZone.addEventListener('dragleave', () => { dropZone.style.borderColor = ''; });
+      dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.style.borderColor = ''; const f = e.dataTransfer.files[0]; if (f) readCsvFile(f); });
+      csvInput.addEventListener('change', e => { if (e.target.files[0]) readCsvFile(e.target.files[0]); });
+      function readCsvFile(file) {
+        const reader = new FileReader();
+        reader.onload = () => { renderCsvPreview(parseCSV(reader.result)); showToast('CSV loaded \u2014 review rows then click Import.'); };
+        reader.readAsText(file);
+      }
+      document.getElementById('downloadCsvTemplateBtn').addEventListener('click', () => {
+        const blob = new Blob([CSV_TEMPLATE], { type: 'text/csv' });
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'finfolio-import-template.csv'; a.click(); URL.revokeObjectURL(a.href);
+        showToast('\u2713 Template downloaded \u2014 fill it in and upload it here.');
+      });
+      document.getElementById('importCsvBtn').addEventListener('click', () => {
+        if (!state.csvRows.length) return;
+        state.csvRows.forEach(r => state.transactions.push({ id: crypto.randomUUID(), date: r.date, amount: r.amount, category: r.category, type: r.type, status: r.status, tag: r.tag, description: r.description }));
+        showToast('\u2713 ' + state.csvRows.length + ' rows imported from CSV.');
+        state.csvRows = []; document.getElementById('csvPreviewBody').innerHTML = ''; document.getElementById('importCsvBtn').style.display = 'none';
         markDirty(); renderAll(); switchView('transactions');
       });
+
+      /* ZIP download */
+      document.getElementById('downloadAppBtn').addEventListener('click', downloadApp);
+
+      /* Copy link */
+      document.getElementById('copyLinkBtn').addEventListener('click', () => {
+        const val = document.getElementById('shareLinkInput').value;
+        if (navigator.clipboard) { navigator.clipboard.writeText(val).then(() => showToast('\u2713 Link copied!')).catch(() => {}); }
+        else { document.getElementById('shareLinkInput').select(); document.execCommand('copy'); showToast('\u2713 Link copied!'); }
+      });
     }
-    function init() {
-      initStartup();
-      attachNav();
-      bindForms();
-      bindButtons();
-      setDefaults();
-      renderAll();
-    }
+
+    function init() { initStartup(); attachNav(); bindForms(); bindButtons(); setDefaults(); renderAll(); }
     document.addEventListener('DOMContentLoaded', init);
   </script>
 </body>
