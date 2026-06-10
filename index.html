@@ -7,7 +7,6 @@
   <link rel="preconnect" href="https://api.fontshare.com" />
   <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&f[]=clash-display@600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
   <style>
     :root, [data-theme="light"] {
       --text-xs:   clamp(0.75rem,  0.7rem  + 0.25vw, 0.875rem);
@@ -504,7 +503,7 @@
             <div class="share-box">
               <div>
                 <h4>&#128640; Download the app</h4>
-                <p style="font-size:var(--text-sm);color:var(--color-text-muted);margin-top:var(--space-2);">Downloads a ZIP containing <code>index.html</code> and <code>intake.html</code>. Unzip it anywhere and open <code>index.html</code> in any browser — works fully offline.</p>
+                <p style="font-size:var(--text-sm);color:var(--color-text-muted);margin-top:var(--space-2);">Downloads a ZIP containing the full FinFolio app. Unzip it anywhere and open <code>index.html</code> in any browser — works fully offline.</p>
                 <button class="btn btn-primary" id="downloadAppBtn" style="margin-top:var(--space-3);width:100%;">&#11015; Download FinFolio (ZIP)</button>
               </div>
               <div>
@@ -638,34 +637,11 @@
 
     /* ── ZIP app download ── */
     function downloadApp() {
-      if (typeof JSZip === 'undefined') { showToast('JSZip not loaded — check your connection and try again.'); return; }
-      showToast('Building ZIP\u2026');
-      Promise.all([
-        fetch('index.html').then(r => r.text()),
-        fetch('intake.html').then(r => r.text())
-      ]).then(([idx, intake]) => {
-        const zip = new JSZip();
-        const folder = zip.folder('finfolio');
-        folder.file('index.html', idx);
-        folder.file('intake.html', intake);
-        folder.file('README.txt',
-          'FinFolio — Personal Financial Portfolio\n' +
-          '========================================\n\n' +
-          'To run locally:\n' +
-          '  1. Unzip this folder anywhere on your computer.\n' +
-          '  2. Open index.html in any modern browser (Chrome, Firefox, Edge, Safari).\n' +
-          '  3. No internet connection, server, or account required.\n\n' +
-          'Saving your data:\n' +
-          '  - Click the Save button to download finfolio-data.json.\n' +
-          '  - Keep this file somewhere safe — it is your entire database.\n' +
-          '  - Load it back with Import JSON or the startup screen.\n\n' +
-          'Live version: https://andredavisme.github.io/finfolio/\n'
-        );
-        return zip.generateAsync({ type: 'blob' });
-      }).then(blob => {
-        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'finfolio.zip'; a.click(); URL.revokeObjectURL(a.href);
-        showToast('\u2713 finfolio.zip downloaded');
-      }).catch(() => showToast('Could not build ZIP — try downloading the files directly from GitHub.'));
+      const a = document.createElement('a');
+      a.href = 'https://andredavisme.github.io/finfolio/finfolio.zip';
+      a.download = 'finfolio.zip';
+      a.click();
+      showToast('\u2713 Downloading finfolio.zip\u2026');
     }
 
     /* ── CSV import ── */
@@ -701,7 +677,7 @@
       if (!rows.length) { tbody.innerHTML = '<tr><td colspan="5"><div class="empty">No valid rows found. Check the column headers match the template.</div></td></tr>'; importBtn.style.display = 'none'; return; }
       tbody.innerHTML = rows.slice(0, 10).map(r =>
         '<tr><td>'+r.date+'</td><td>'+r.category+'</td><td>'+r.type+'</td><td>'+r.status+'</td><td>'+currency.format(r.amount)+'</td></tr>'
-      ).join('') + (rows.length > 10 ? '<tr><td colspan="5" style="color:var(--color-text-muted);font-size:var(--text-xs);">…and '+(rows.length-10)+' more rows</td></tr>' : '');
+      ).join('') + (rows.length > 10 ? '<tr><td colspan="5" style="color:var(--color-text-muted);font-size:var(--text-xs);">\u2026and '+(rows.length-10)+' more rows</td></tr>' : '');
       countEl.textContent = rows.length;
       importBtn.style.display = '';
     }
